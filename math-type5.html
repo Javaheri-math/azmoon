@@ -1,0 +1,4988 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ساخت سوال ریاضی</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     بخش ۱: استایل‌های صفحه (CSS)
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: Tahoma, 'Segoe UI', sans-serif;
+    background: #f0f4f8;
+    color: #1e293b;
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  header { text-align: center; margin-bottom: 14px; }
+  header h1 { font-size: 20px; margin: 0 0 4px; }
+  header p  { font-size: 13px; color: #64748b; margin: 0; }
+
+  /* ─── ۱.۱ نوار ابزار ─── */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 12px;
+    direction: ltr;
+    justify-content: flex-start;
+  }
+
+  .tool-btn {
+    padding: 6px 12px;
+    min-width: 42px;
+    height: 42px;
+    font-size: 16px;
+    font-family: inherit;
+    background: #f8fafc;
+    color: #1e293b;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    direction: ltr;
+  }
+  .tool-btn:hover {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+  }
+  .tool-btn:active { transform: scale(0.95); }
+  .tool-btn.primary {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #93c5fd;
+    font-weight: 600;
+  }
+  .tool-btn.primary:hover {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+  }
+  .tool-btn .katex { font-size: 1.05em; }
+  .tool-btn.group-toggle {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+    font-weight: 600;
+    font-family: Tahoma, sans-serif;
+    padding: 6px 14px;
+  }
+  .tool-btn.group-toggle:hover {
+    background: #f59e0b;
+    color: #fff;
+    border-color: #f59e0b;
+  }
+
+  /* ─── ۱.۲ پنل‌ها ─── */
+  .panel {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 12px;
+  }
+  .panel-title {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 8px;
+    font-weight: 500;
+  }
+
+  #editor {
+    width: 100%;
+    min-height: 160px;
+    padding: 14px;
+    font-size: 16px;
+    font-family: Tahoma, 'Segoe UI', sans-serif;
+    line-height: 2;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    resize: vertical;
+    outline: none;
+    transition: 0.15s;
+    background: #fff;
+    direction: rtl;
+    unicode-bidi: plaintext;
+  }
+  #editor:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+
+  #preview {
+    min-height: 60px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 2.2;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    direction: rtl;
+    unicode-bidi: plaintext;
+  }
+  #preview .placeholder {
+    color: #94a3b8;
+    font-style: italic;
+  }
+ .ltr-run {
+  direction: ltr;
+  unicode-bidi: embed;
+  display: inline;
+}
+
+  /* ─── ۱.۳ دکمه‌های عملیات ─── */
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .action-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.15s;
+    background: #64748b;
+    color: #fff;
+    font-weight: 600;
+  }
+  .action-btn:hover { background: #475569; }
+  .action-btn.primary { background: #3b82f6; }
+  .action-btn.primary:hover { background: #2563eb; }
+  .action-btn.success { background: #22c55e; }
+  .action-btn.success:hover { background: #16a34a; }
+  .action-btn.print { background: #8b5cf6; }
+  .action-btn.print:hover { background: #7c3aed; }
+  .action-btn.danger { background: #ef4444; }
+  .action-btn.danger:hover { background: #dc2626; }
+
+  /* ─── ۱.۴ مودال ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+  }
+/* مودال اصلی (کسر/رادیکال/توان/...) باید همیشه روی مودال چهارقسمتی بیفتد */
+#modal { z-index: 1100; }
+  .modal-overlay.active { display: flex; }
+
+  .modal-box {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: pop 0.15s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes pop {
+    from { transform: scale(0.94); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+  .modal-box h3 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    color: #1e293b;
+  }
+  .modal-field { margin-bottom: 10px; }
+ .modal-field label {
+  display: block;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 4px;
+  white-space: pre-line;    /* ← این خط جدید */
+  line-height: 1.6;
+}
+  .modal-field input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 16px;
+    font-family: 'Courier New', monospace;
+    direction: ltr;
+    text-align: center;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+    transition: 0.15s;
+  }
+  .modal-field input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+  .modal-actions button {
+    padding: 9px 18px;
+    font-size: 14px;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.15s;
+  }
+  .modal-actions .cancel { background: #e2e8f0; color: #334155; }
+  .modal-actions .cancel:hover { background: #cbd5e1; }
+  .modal-actions .confirm { background: #3b82f6; color: #fff; }
+  .modal-actions .confirm:hover { background: #2563eb; }
+
+  .katex { direction: ltr; unicode-bidi: isolate; }
+
+  /* ─── ۱.۵ نوار ابزار کوچک مودال ─── */
+  .modal-mini-toolbar {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    direction: rtl;
+  }
+  .modal-mini-toolbar .mini-btn {
+    padding: 6px 14px;
+    font-size: 14px;
+    font-family: Tahoma, sans-serif;
+    background: #fff;
+    color: #1e293b;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .modal-mini-toolbar .mini-btn:hover {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+  }
+
+  /* ─── ۱.۶ کارت‌های سوال ─── */
+  .question-card {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-right: 4px solid #3b82f6;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .question-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #e2e8f0;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .question-card-header .num {
+    font-weight: 700;
+    color: #1e40af;
+    font-size: 14px;
+  }
+  .score-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .score-input {
+    width: 60px;
+    padding: 3px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    text-align: center;
+    direction: ltr;
+    outline: none;
+    transition: 0.15s;
+  }
+  .score-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+  }
+  .question-card-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .qc-btn {
+    padding: 3px 10px;
+    font-size: 13px;
+    background: #e2e8f0;
+    color: #334155;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .qc-btn:hover { background: #cbd5e1; }
+  .qc-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .qc-btn.del { background: #fee2e2; color: #991b1b; }
+  .qc-btn.del:hover { background: #fecaca; }
+  .question-card-body {
+    font-size: 15px;
+    line-height: 2.2;
+    direction: rtl;
+    unicode-bidi: plaintext;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+ .image-block img {
+  display: block;
+  margin: 0;
+}
+
+  /* ─── ۱.۷ نوار جمع بارم ─── */
+  .total-bar {
+    background: #eff6ff;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #1e40af;
+    font-weight: 600;
+    text-align: center;
+  }
+  .total-bar .total-number {
+    font-size: 18px;
+    color: #1d4ed8;
+    margin: 0 4px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ۱.۸ طرح چاپ — بازنویسی کامل
+     ═══════════════════════════════════════════════════════════ */
+  #printLayout {
+    display: none;
+    direction: rtl;
+  }
+
+  /* سربرگ */
+  .print-header {
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .print-besm {
+    font-size: 16pt;
+    font-weight: bold;
+    padding: 8px 0;
+  }
+  .print-org {
+    font-size: 12pt;
+    padding: 6px 0;
+    border-top: 2px solid #1e293b;
+    border-bottom: 1px solid #94a3b8;
+  }
+
+  /* جدول اطلاعات سربرگ */
+  .print-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    border: 1.5px solid #1e293b;
+    font-size: 11pt;
+  }
+  .print-info-table td {
+    padding: 7px 10px;
+    text-align: right;
+    border-bottom: 1px solid #94a3b8;
+    vertical-align: middle;
+  }
+  .print-info-table tr:last-child td {
+    border-bottom: none;
+  }
+  .print-info-table .col-right {
+    width: 55%;
+    border-left: 1px solid #94a3b8;
+  }
+  .print-info-table b {
+    font-weight: bold;
+    color: #1e293b;
+  }
+  .print-info-table .dots {
+    color: #94a3b8;
+    letter-spacing: 1px;
+  }
+
+  /* نوار دبیر/مدت/نمره */
+  .print-meta {
+    display: flex;
+    justify-content: space-around;
+    font-size: 11pt;
+    padding: 8px 6px;
+    border-top: 1px solid #94a3b8;
+    border-bottom: 2px solid #1e293b;
+    margin-top: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* سوالات */
+  .print-questions {
+    margin-top: 18px;
+  }
+ .print-question {
+  display: flex;
+  flex-direction: row;
+  border: 1.5px solid #1e293b;
+  margin-bottom: 12px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  min-height: 70px;
+  background: #fff;
+}
+.print-question {
+  display: flex;
+  border: 1.5px solid #1e293b;
+  margin-bottom: 12px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  min-height: 70px;
+  background: #fff;
+}
+.pq-num {
+  width: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  border-left: 1.5px solid #1e293b;
+  background: #f8fafc;
+  font-size: 13pt;
+  font-weight: bold;
+  color: #1e40af;
+  padding: 4px 0;
+}
+.pq-content {
+  flex: 1;
+  padding: 4px 4px 4px 4px;
+  margin: 0;
+  font-size: 12pt;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: start;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  vertical-align: top;
+}
+
+  .pq-content .image-block img {
+    max-width: 100%;
+    height: auto;
+  }
+/* ─── شکل‌ها کنار متن (float) ─── */
+.pq-content .draw-block,
+.pq-content .coordsys-block,
+.pq-content .numberline-block,
+.pq-content .image-block {
+  float: left;
+  margin: 0 14px 8px 0;
+  padding: 0;
+  clear: none;
+  max-width: 100%;
+  line-height: 0;
+  vertical-align: top;
+}
+
+/* پاک کردن float بعد از محتوا */
+.pq-content::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+/* ─── شکل‌ها کنار متن در کارت‌های سوال ─── */
+.question-card-body .draw-block,
+.question-card-body .coordsys-block,
+.question-card-body .numberline-block,
+.question-card-body .image-block {
+  float: left;
+  margin-left: 14px;
+  margin-bottom: 8px;
+  clear: none;
+  max-width: 100%;
+}
+
+.question-card-body::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+  .pq-score {
+    width: 62px;
+    min-width: 62px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1.5px solid #1e293b;
+    background: #f8fafc;
+  }
+  .pq-score-label {
+    border-bottom: 1.5px solid #1e293b;
+    text-align: center;
+    font-size: 10pt;
+    padding: 3px 0;
+    background: #eff6ff;
+    color: #1e40af;
+    font-weight: bold;
+  }
+  .pq-score-value {
+    flex: 1;
+    text-align: center;
+    padding-top: 8px;
+    font-size: 13pt;
+    font-weight: bold;
+    color: #1e293b;
+  }
+
+  .print-footer {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 11pt;
+    color: #475569;
+  }
+
+  /* ─── ۱.۹ ریسپانسیو و چاپ ─── */
+  @media (max-width: 500px) {
+    .app { padding: 10px; }
+    .toolbar { padding: 8px; gap: 5px; }
+    .tool-btn {
+      padding: 5px 9px;
+      min-width: 38px;
+      height: 38px;
+      font-size: 15px;
+    }
+    #editor { font-size: 15px; min-height: 130px; padding: 12px; }
+    #preview { font-size: 15px; }
+    .modal-box { padding: 16px; }
+  }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 12mm 10mm;
+    }
+    body {
+      background: #fff !important;
+      padding: 0 !important;
+    }
+    .app, .toolbar, .actions, header,
+    #editor, #preview, .panel, .modal-overlay {
+      display: none !important;
+    }
+    #printLayout {
+      display: block !important;
+      padding: 0;
+      font-family: Tahoma, 'Segoe UI', sans-serif;
+    }
+    .print-header { page-break-after: avoid; }
+   
+    .katex { direction: ltr; unicode-bidi: isolate; }
+  }
+/* ─── ۱.۱۰ مودال رسم ─── */
+.draw-modal-box {
+  max-width: 800px;
+  width: 100%;
+}
+.draw-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.draw-tool-btn {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-family: Tahoma, sans-serif;
+  background: #fff;
+  color: #1e293b;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.draw-tool-btn:hover {
+  background: #e2e8f0;
+}
+.draw-tool-btn.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+  font-weight: 600;
+}
+.draw-canvas-wrap {
+  width: 100%;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: contain;
+}
+#drawCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  background: #fff;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;    /* ← این خط جدید */
+will-change: transform;
+  contain: layout style paint;
+}
+.draw-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.draw-modal-box .modal-box,
+.draw-modal-box {
+  touch-action: manipulation;
+}
+.draw-action-btn {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-family: Tahoma, sans-serif;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.draw-action-btn:hover {
+  background: #e2e8f0;
+}
+.draw-block {
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  direction: ltr;
+}
+.draw-block svg {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.15s;
+}
+.draw-block svg:hover {
+  box-shadow: 0 0 0 2px #93c5fd;
+}
+/* دکمه‌های ذخیره و بارگذاری */
+.action-btn.save { background: #0ea5e9; }
+.action-btn.save:hover { background: #0284c7; }
+.action-btn.load { background: #f59e0b; }
+.action-btn.load:hover { background: #d97706; }
+
+/* آیتم‌های لیست امتحان‌های ذخیره‌شده */
+.saved-exam-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.saved-exam-info { flex: 1; min-width: 200px; }
+.saved-exam-name { font-weight: 700; color: #1e293b; margin-bottom: 4px; font-size: 15px; }
+.saved-exam-meta { font-size: 12px; color: #64748b; }
+.saved-exam-actions { display: flex; gap: 6px; }
+.saved-exam-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.15s;
+}
+.saved-exam-btn.open { background: #3b82f6; color: white; }
+.saved-exam-btn.open:hover { background: #2563eb; }
+.saved-exam-btn.del { background: #fee2e2; color: #991b1b; }
+.saved-exam-btn.del:hover { background: #fecaca; }
+.no-saved-exams {
+  text-align: center;
+  color: #94a3b8;
+  padding: 30px 0;
+  font-size: 14px;
+}
+/* ردیف‌های کنار هم در مودال */
+.modal-row {
+  margin-bottom: 10px;
+}
+.modal-row-label {
+  display: block;
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.modal-row-inputs {
+  display: flex;
+  gap: 8px;
+}
+.modal-row-input-item {
+  flex: 1;
+}
+.modal-row-input-item label {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 3px;
+  text-align: center;
+}
+.modal-row-input-item input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  direction: ltr;
+  text-align: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  transition: 0.15s;
+}
+.modal-row-input-item input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+/* ─── مودال سوال چهارقسمتی ─── */
+.multiq-modal-box {
+  max-width: 750px;
+  width: 100%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.multiq-scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px;
+  margin-bottom: 10px;
+  max-height: 55vh;
+}
+.multiq-part {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-right: 4px solid #3b82f6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.multiq-part-header {
+  font-weight: 700;
+  color: #1e40af;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.multiq-q-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: Tahoma, sans-serif;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+  direction: rtl;
+
+  background: #fff;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+.multiq-q-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.multiq-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.multiq-option-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.multiq-option-num {
+  font-weight: 700;
+  color: #1e40af;
+  font-size: 14px;
+  min-width: 22px;
+}
+.multiq-q-input,
+.multiq-opt-input {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: Tahoma, sans-serif;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  direction: rtl;
+
+  background: #fff;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.multiq-opt-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.multiq-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.multiq-toolbar-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: 4px;
+}
+
+/* ─── نمایش سوال چهارقسمتی در پیش‌نمایش و چاپ ─── */
+.multiq-block {
+  width: 100%;
+}
+.multiq-part-view {
+  margin-bottom: 8px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.multiq-part-view:last-child {
+  margin-bottom: 0;
+}
+.multiq-part-q {
+  font-size: 12pt;
+  line-height: 1.6;
+  margin-bottom: 3px;
+}
+.multiq-part-name {
+  font-weight: bold;
+  color: #1e40af;
+}
+.multiq-options-view {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 12px;
+  padding-right: 22px;
+  font-size: 11.5pt;
+  line-height: 1.6;
+}
+.multiq-opt-view {
+  white-space: normal;
+  word-break: break-word;
+  text-align: right;
+}
+.multiq-opt-num {
+  font-weight: bold;
+  color: #1e40af;
+}
+/* ─── دکمه‌های دانلود و بارگذاری فایل ─── */
+.action-btn.download { background: #8b5cf6; }
+.action-btn.download:hover { background: #7c3aed; }
+.action-btn.upload { background: #ec4899; }
+.action-btn.upload:hover { background: #db2777; }
+
+/* ─── بنر ویرایش ─── */
+.edit-banner {
+  display: none;
+  background: #fef3c7;
+  border: 1.5px solid #fcd34d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: 600;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.edit-banner.active { display: flex; }
+.edit-banner-text { flex: 1; }
+.edit-banner-cancel {
+  padding: 5px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  color: #92400e;
+  border: 1.5px solid #fcd34d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.15s;
+}
+.edit-banner-cancel:hover {
+  background: #fcd34d;
+  color: #78350f;
+}
+
+/* ─── دکمه ویرایش توی کارت سوال ─── */
+.qc-btn.edit {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.qc-btn.edit:hover { background: #bfdbfe; }
+.multiq-block {
+  width: 100%;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.15s;
+}
+.multiq-block:hover {
+  box-shadow: 0 0 0 2px #93c5fd;
+}
+/* ─── نوار ابزار کامل داخل مودال چهارقسمتی ─── */
+.multiq-full-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  max-height: 150px;
+  overflow-y: auto;
+  direction: ltr;
+  justify-content: flex-start;
+}
+.multiq-full-toolbar .tool-btn {
+  height: 36px;
+  min-width: 36px;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+.multiq-full-toolbar .tool-btn .katex {
+  font-size: 0.95em;
+}
+/* ─── ۱.۱۱ مودال دیکشنری ─── */
+.dict-modal-box {
+  max-width: 800px;
+  width: 100%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dict-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  direction: ltr;
+  justify-content: flex-start;
+  max-height: 130px;
+  overflow-y: auto;
+}
+.dict-toolbar .tool-btn {
+  height: 36px;
+  min-width: 36px;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.dict-actions-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.dict-actions-bar input {
+  flex: 1;
+  min-width: 150px;
+  padding: 8px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  direction: rtl;
+  transition: 0.15s;
+}
+.dict-actions-bar input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.dict-actions-bar button {
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.15s;
+}
+.dict-actions-bar button:hover {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.dict-table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 40px;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 8px 8px 0 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e40af;
+  text-align: center;
+}
+.dict-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  border: 1.5px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin-bottom: 12px;
+  min-height: 180px;
+  max-height: 50vh;
+  background: #fff;
+}
+
+.dict-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 40px;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: start;   /* ← تغییر */
+}
+.dict-row:last-child { border-bottom: none; }
+
+.dict-row input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: 0.15s;
+  background: #fff;
+}
+.dict-row input.dict-persian-input {
+  direction: rtl;
+  text-align: right;
+}
+.dict-row .dict-latex-input {
+  direction: ltr;
+  text-align: left;
+  font-family: 'Courier New', monospace;
+
+  /* حالت پیش‌فرض: کوچک و تک‌خطی */
+  height: 38px;
+  min-height: 38px;
+  padding: 9px 10px;
+  line-height: 1.4;
+  resize: none;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+
+  /* انیمیشن نرم */
+  transition: height 0.18s ease, min-height 0.18s ease;
+}
+
+/* حالت فوکوس: بزرگ */
+.dict-row .dict-latex-input:focus {
+  height: 110px;
+  min-height: 110px;
+  resize: vertical;
+}
+.dict-row input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+.dict-del-btn {
+  width: 32px;
+  height: 32px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: 0.15s;
+}
+.dict-del-btn:hover { background: #fecaca; }
+
+.dict-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* ─── پیش‌نمایش جایگزینی ─── */
+.replace-preview-section { margin-bottom: 12px; }
+.replace-preview-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.replace-preview-text {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.9;
+  direction: rtl;
+  text-align: right;
+  max-height: 130px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.replace-matches-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+}
+.replace-match-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: #f8fafc;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.replace-match-item input[type=checkbox] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+.replace-match-item .rm-persian { color: #1e40af; font-weight: 600; }
+.replace-match-item .rm-arrow   { color: #94a3b8; }
+.replace-match-item .rm-latex {
+  font-family: 'Courier New', monospace;
+  color: #7c3aed;
+  direction: ltr;
+  background: #f5f3ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     بخش ۲: بدنه‌ی صفحه (HTML)
+     ═══════════════════════════════════════════════════════════ -->
+
+<div class="app">
+
+  <header>
+    <h1>📐 ساخت سوالات ریاضی</h1>
+    <p>💡 مخصوص دوره اول متوسطه</p>
+  </header>
+
+  <!-- ─── ۲.۱ نوار ابزار ─── -->
+  <div class="toolbar" id="toolbar"></div>
+
+  <!-- ─── ۲.۲ ویرایشگر ─── -->
+ <!-- ─── ۲.۲ ویرایشگر ─── -->
+<!-- ─── ۲.۲ ویرایشگر ─── -->
+<div class="panel">
+  <p class="panel-title">✏️ صورت سوال</p>
+
+  <!-- بنر ویرایش -->
+  <div class="edit-banner" id="editBanner">
+    <span class="edit-banner-text" id="editBannerText"></span>
+    <button type="button" class="edit-banner-cancel" id="cancelEditBtn">لغو ویرایش</button>
+  </div>
+
+  <textarea id="editor"></textarea>
+</div>
+
+  <!-- ─── ۲.۳ پیش‌نمایش ─── -->
+  <div class="panel">
+    <p class="panel-title">👁️ پیش‌نمایش</p>
+    <div id="preview"></div>
+  </div>
+
+  <!-- ─── ۲.۴ دکمه‌ها ─── -->
+<!-- ─── ۲.۴ دکمه‌ها ─── -->
+<div class="actions">
+  <button class="action-btn primary"  id="addQuestionBtn">➕ اضافه کردن سوال</button>
+  
+  
+  <button class="action-btn download" id="downloadFileBtn">⬇️ دانلود فایل</button>
+  <button class="action-btn upload"   id="uploadFileBtn">⬆️ بارگذاری از فایل</button>
+</div>
+
+  <!-- ─── ۲.۵ پنل سوالات اضافه‌شده ─── -->
+  <div class="panel" id="questionsPanel" style="display:none;">
+    <p class="panel-title">📚 سوالات اضافه‌شده (<span id="questionsCount">0</span>)</p>
+    <div id="questionsList"></div>
+    <div class="total-bar">
+      جمع بارم سوالات: <span class="total-number" id="totalScore">0</span> نمره
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+      
+    </div>
+  </div>
+
+  <!-- ─── ۲.۶ دکمه چاپ ─── -->
+  <div class="actions">
+    <button class="action-btn print" id="printBtn">🖨️ چاپ / ذخیره PDF</button>
+  </div>
+
+</div>
+
+<!-- ─── ۲.۷ مودال اصلی ─── -->
+<!-- ─── ۲.۷ مودال اصلی ─── -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <h3 id="modalTitle"></h3>
+    <div id="modalFields"></div>
+    <div class="modal-mini-toolbar" id="modalMiniToolbar">
+      <button type="button" class="mini-btn" id="modalPowBtn" title="توان">به توان</button>
+      <button type="button" class="mini-btn" id="modalSqrtBtn" title="رادیکال">رادیکال</button>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="cancel"  id="modalCancel">انصراف</button>
+      <button type="button" class="confirm" id="modalConfirm">درج</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     ۲.۸ مودال تنظیمات چاپ — بازنویسی‌شده
+     ═══════════════════════════════════════════════════════════ -->
+<!-- ─── ۲.۱۳ مودال سوال چهارقسمتی ─── -->
+<div class="modal-overlay" id="multiQModal">
+  <div class="modal-box multiq-modal-box">
+    <h3>📋 سوال چهارقسمتی (۴ گزینه‌ای)</h3>
+<div class="multiq-full-toolbar" id="multiQFullToolbar"></div>
+    <div class="multiq-scroll" id="multiQForm"></div>
+
+   
+
+    <div class="modal-actions">
+      <button type="button" class="cancel" id="mqCancelBtn">انصراف</button>
+      <button type="button" class="confirm" id="mqInsertBtn">درج</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="voiceTextModal">
+  <div class="modal-box" style="max-width: 560px;">
+    <h3>🎤 تبدیل گفتار به متن</h3>
+
+    <div class="modal-field">
+      <label>متن خود را بنویسید یا با میکروفون بگویید:</label>
+      <textarea id="voiceTextArea"
+        style="width:100%;min-height:160px;padding:10px 12px;font-size:16px;
+               font-family:Tahoma,'Segoe UI',sans-serif;line-height:2;
+               border:1.5px solid #e2e8f0;border-radius:8px;outline:none;
+               resize:vertical;direction:rtl;unicode-bidi:plaintext;background:#fff;"></textarea>
+    </div>
+
+    <!-- دکمه بزرگ ضبط / توقف -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px;">
+      <button type="button" id="voiceRecordBtn"
+        style="width:80px;height:80px;border-radius:50%;background:#ef4444;
+               border:none;color:#fff;font-size:2rem;cursor:pointer;
+               display:flex;justify-content:center;align-items:center;
+               box-shadow:0 4px 0 #b91c1c;transition:0.2s;">
+        <span id="voiceRecordIcon">🎤</span>
+      </button>
+      <span id="voiceStatus" style="font-size:13px;color:#64748b;min-height:20px;text-align:center;direction:rtl;"></span>
+    </div>
+
+    <!-- دکمه‌های دیکشنری و جایگزینی -->
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap;">
+      <button type="button" id="voiceDictBtn"
+        style="padding:9px 16px;font-size:14px;font-family:inherit;background:#f1f5f9;
+               color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;cursor:pointer;
+               font-weight:600;transition:0.15s;">
+        📖 دیکشنری
+      </button>
+      <button type="button" id="voiceReplaceBtn"
+        style="padding:9px 16px;font-size:14px;font-family:inherit;background:#fef3c7;
+               color:#92400e;border:1.5px solid #fcd34d;border-radius:8px;cursor:pointer;
+               font-weight:600;transition:0.15s;">
+        🔁 جایگزینی خودکار
+      </button>
+    </div>
+
+    <div class="modal-actions" style="margin-top:16px;">
+      <button type="button" class="cancel" id="voiceCancelBtn">انصراف</button>
+      <button type="button" class="confirm" id="voiceInsertBtn">درج</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+
+
+
+
+<!-- ─── ۲.۱۴ مودال دیکشنری فارسی → LaTeX ─── -->
+<div class="modal-overlay" id="dictModal" style="z-index:1200;">
+  <div class="modal-box dict-modal-box">
+    <h3>📖 دیکشنری فارسی → LaTeX</h3>
+
+    <!-- نوار ابزار درج LaTeX -->
+    <div class="dict-toolbar" id="dictToolbar"></div>
+
+    <!-- جستجو و ابزارها -->
+    <div class="dict-actions-bar">
+      <input type="text" id="dictSearch" placeholder="🔍 جستجو در دیکشنری...">
+      <button type="button" id="dictAddBtn">➕ افزودن</button>
+      <button type="button" id="dictExportBtn" title="خروجی JSON">📤</button>
+      <button type="button" id="dictImportBtn" title="ورود JSON">📥</button>
+    </div>
+
+    <!-- سربرگ جدول -->
+    <div class="dict-table-header">
+      <div>عبارت فارسی</div>
+      <div>کد LaTeX</div>
+      <div></div>
+    </div>
+    <!-- بدنه‌ی جدول -->
+    <div class="dict-table-wrap">
+      <div id="dictTableBody"></div>
+      <div id="dictEmpty" class="dict-empty">هنوز چیزی اضافه نکرده‌اید. روی «➕ افزودن» بزنید.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="cancel" id="dictCloseBtn">↩️ بازگشت به ضبط</button>
+      <button type="button" class="confirm" id="dictSaveBtn">💾 ذخیره و بستن</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ۲.۱۵ مودال پیش‌نمایش جایگزینی ─── -->
+<div class="modal-overlay" id="replacePreviewModal" style="z-index:1300;">
+  <div class="modal-box" style="max-width:600px;">
+    <h3>🔁 پیش‌نمایش جایگزینی خودکار</h3>
+    <div id="replacePreviewContent"></div>
+    <div class="modal-actions">
+      <button type="button" class="cancel" id="replaceCancelBtn">انصراف</button>
+      <button type="button" class="confirm" id="replaceApplyBtn">✅ جایگزین کن</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="modal-overlay" id="printSettingsModal">
+  <div class="modal-box" style="max-width: 500px;">
+    <h3>🖨️ تنظیمات چاپ</h3>
+
+    <div class="modal-field">
+      <label>عنوان آزمون (اجباری)</label>
+      <input type="text" id="ps_examTitle" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>استان</label>
+      <input type="text" id="ps_province" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>نام آموزشگاه</label>
+      <input type="text" id="ps_school" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>پایه</label>
+      <input type="text" id="ps_grade" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>کلاس</label>
+      <input type="text" id="ps_class" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>نام دبیر</label>
+      <input type="text" id="ps_teacher" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>مدت زمان آزمون</label>
+      <input type="text" id="ps_duration" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>تاریخ آزمون (خالی = نمایش داده نمی‌شود)</label>
+      <input type="text" id="ps_date" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field">
+      <label>جمع کل نمره (خالی = جمع خودکار بارم‌ها)</label>
+      <input type="text" id="ps_totalOverride" style="text-align:right;direction:rtl;font-family:Tahoma;">
+    </div>
+    <div class="modal-field" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="ps_persianDigits" style="width:auto;height:18px;padding:0;margin:0;">
+      <label for="ps_persianDigits" style="margin:0;font-size:14px;color:#1e293b;cursor:pointer;">نمایش اعداد به فارسی در چاپ</label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="cancel"  id="ps_cancel">انصراف</button>
+      <button type="button" class="confirm" id="ps_confirm">🖨️ چاپ</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─── ۲.۱۰ مودال رسم شکل ─── -->
+<!-- ─── ۲.۱۰ مودال رسم شکل (شبکه‌ای) ─── -->
+<div class="modal-overlay" id="drawModal">
+  <div class="modal-box draw-modal-box" style="max-width: 520px;">
+    <h3>📐 رسم شکل روی شبکه</h3>
+
+    <div class="draw-toolbar" id="drawToolbar">
+      <button type="button" class="draw-tool-btn active" data-grid-tool="line">خط</button>
+      <button type="button" class="draw-tool-btn" data-grid-tool="circle">دایره</button>
+      <button type="button" class="draw-tool-btn" data-grid-tool="text">متن</button>
+    </div>
+
+    <p id="drawHint" style="text-align:center;font-size:12px;color:#64748b;margin:4px 0 8px;">
+      روی شبکه دبل‌کلیک کن — نقطه اول، بعد نقطه دوم
+    </p>
+
+    <div class="draw-canvas-wrap" style="padding:4px;background:#f8fafc;">
+      <svg id="drawCanvas" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div id="drawShapeList" style="max-height:110px;overflow-y:auto;margin-top:8px;"></div>
+
+    <div class="draw-actions">
+      <button type="button" class="draw-action-btn" id="drawUndoBtn">↶ واگرد</button>
+      <button type="button" class="draw-action-btn" id="drawClearBtn">🗑️ پاک کردن بوم</button>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="cancel" id="drawCancelBtn">انصراف</button>
+      <button type="button" class="confirm" id="drawInsertBtn">درج شکل</button>
+    </div>
+  </div>
+</div>
+<!-- ═══════════════════════════════════════════════════════════
+     ۲.۹ طرح چاپ — بازنویسی‌شده
+     ═══════════════════════════════════════════════════════════ -->
+<div id="printLayout">
+  <div class="print-header">
+    <div class="print-besm">بسمه تعالی</div>
+    <div class="print-org">سازمان آموزش و پرورش استان <span id="pr_province"></span></div>
+
+    <table class="print-info-table">
+      <tr>
+        <td class="col-right"><b>نام دانش‌آموز:</b> <span class="dots">......................................</span></td>
+        <td class="col-left"  id="pr_grade_row"><b>پایه:</b> <span id="pr_grade"></span></td>
+      </tr>
+      <tr>
+        <td class="col-right"><b>نام آموزشگاه:</b> <span id="pr_school"></span></td>
+        <td class="col-left"  id="pr_exam_row"><b>آزمون:</b> <span id="pr_examTitle"></span></td>
+      </tr>
+      <tr>
+        <td class="col-right"><b>کلاس:</b> <span id="pr_class"></span></td>
+        <td class="col-left"  id="pr_date_row"><b>تاریخ:</b> <span id="pr_date"></span></td>
+      </tr>
+    </table>
+
+    <div class="print-meta">
+      <span id="pr_teacher"></span>
+      <span id="pr_duration_wrap">مدت: <span id="pr_duration"></span></span>
+      <span>نمره: ................ از <span id="pr_total">20</span></span>
+    </div>
+  </div>
+
+  <div class="print-questions" id="printQuestions"></div>
+  <div class="print-footer">موفق باشید 🌸</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     بخش ۳: جاوااسکریپت (JavaScript)
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱: پیکربندی دکمه‌ها
+   ═══════════════════════════════════════════════════════════ */
+const BUTTONS = [
+  {
+    id: 'radical',
+    label: '$\\sqrt[m]{x}$',
+    title: 'رادیکال با فرجه',
+    modal: {
+      title: 'رادیکال با فرجه',
+      fields: [
+        { name: 'content', label: 'عبارت زیر رادیکال' },
+        { name: 'index',   label: 'فرجه (اختیاری)', optional: true }
+      ],
+      build: (v) => {
+        const content = v.content;
+        const index   = v.index.trim();
+        const indexPart = (index && index !== '2') ? `[${index}]` : '';
+        return `$\\sqrt${indexPart}{${content}}$`;
+      }
+    }
+  },
+  {
+    id: 'fraction',
+    label: '$\\displaystyle\\frac{a}{b}$',
+    title: 'کسر',
+    modal: {
+      title: 'کسر',
+      fields: [
+        { name: 'num', label: 'صورت' },
+        { name: 'den', label: 'مخرج' }
+      ],
+      build: (v) => `$\\displaystyle\\frac{${v.num}}{${v.den}}$`
+    }
+  },
+  {
+    id: 'power',
+    label: '$x^{y}$',
+    title: 'توان',
+    modal: {
+      title: 'توان',
+      fields: [
+        { name: 'base', label: 'پایه' },
+        { name: 'exp',  label: 'توان' }
+      ],
+      build: (v) => `$${v.base}^{${v.exp}}$`
+    }
+  },
+  {
+    id: 'fracPow',
+    label: '$(\\displaystyle\\frac{a}{b})^{n}$',
+    title: 'کسر به توان',
+    modal: {
+      title: 'کسر به توان',
+      fields: [
+        { name: 'num', label: 'صورت' },
+        { name: 'den', label: 'مخرج' },
+        { name: 'exp', label: 'توان' }
+      ],
+      build: (v) =>  `$\\left(\\displaystyle\\frac{${v.num}}{${v.den}}\\right)^{${v.exp}}$`
+    }
+  },
+  { id: 'multiq', label: '📋', title: 'سوال چهارقسمتی ۴ گزینه‌ای', action: 'multiq' },
+{ id: 'voiceText', label: '🎤', title: 'تبدیل گفتار به متن', action: 'voiceText' },
+  { id: 'plus',  label: '+', title: 'جمع',      insert: '$+$' },
+  { id: 'minus', label: '−', title: 'تفریق',    insert: '$-$' },
+  { id: 'times', label: '×', title: 'ضرب',      insert: '$\\times$' },
+  { id: 'div',   label: '÷', title: 'تقسیم',    insert: '$\\div$' },
+
+  { id: 'eq',    label: '=', title: 'مساوی',            insert: '$=$' },
+  { id: 'neq',   label: '≠', title: 'نامساوی',          insert: '$\\neq$' },
+  { id: 'gt',    label: '>', title: 'بزرگ‌تر',           insert: '$>$' },
+  { id: 'lt',    label: '<', title: 'کوچک‌تر',           insert: '$<$' },
+  { id: 'geq',   label: '≥', title: 'بزرگ‌تر یا مساوی',  insert: '$\\geq$' },
+  { id: 'leq',   label: '≤', title: 'کوچک‌تر یا مساوی',  insert: '$\\leq$' },
+
+  { id: 'parallel', label: '$\\parallel$', title: 'موازی', insert: '$\\parallel$' },
+  { id: 'perp',     label: '$\\perp$',     title: 'عمود',  insert: '$\\perp$' },
+
+  { id: 'pi', label: '$\\pi$', title: 'عدد پی', insert: '$\\pi$' },
+
+  { id: 'subset',    label: '$\\subset$',     title: 'زیرمجموعه',       insert: '$\\subset$',     group: 'sets' },
+  { id: 'notsubset', label: '$\\not\\subset$', title: 'زیرمجموعه نیست', insert: '$\\not\\subset$', group: 'sets' },
+  { id: 'in',        label: '$\\in$',         title: 'تعلق دارد',        insert: '$\\in$',         group: 'sets' },
+  { id: 'notin',     label: '$\\notin$',      title: 'تعلق ندارد',       insert: '$\\notin$',      group: 'sets' },
+  { id: 'cup',       label: '$\\cup$',        title: 'اجتماع',           insert: '$\\cup$',        group: 'sets' },
+  { id: 'cap',       label: '$\\cap$',        title: 'اشتراک',           insert: '$\\cap$',        group: 'sets' },
+  { id: 'mid',       label: '$\\mid$',        title: 'بطوریکه',          insert: '$\\mid$',        group: 'sets' },
+
+  { id: 'image', label: '🖼️', title: 'افزودن تصویر', action: 'image' },
+{ id: 'draw', label: '📐', title: 'رسم شکل هندسی', action: 'draw' },
+
+  {
+    id: 'numberline',
+    label: 'html:<svg width="30" height="22" viewBox="0 0 30 22" style="display:inline-block;vertical-align:middle;"><line x1="2" y1="11" x2="26" y2="11" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="7" x2="8" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="16" y1="7" x2="16" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="24" y1="7" x2="24" y2="15" stroke="currentColor" stroke-width="1.5"/><polygon points="28,11 24,8 24,14" fill="currentColor"/></svg>',
+    title: 'محور اعداد',
+    modal: {
+      title: 'رسم محور اعداد',
+      noMiniTools: true,
+      fields: [
+        { name: 'from', label: 'از عدد' },
+        { name: 'to',   label: 'تا عدد' },
+        { name: 'div',  label: 'هر واحد به چند قسمت مساوی تقسیم شود؟ (اختیاری)', optional: true }
+      ],
+      build: (v) => {
+        const from = parseFloat(v.from);
+        const to   = parseFloat(v.to);
+        const div  = parseInt(v.div) || 1;
+        return `[[NL|${from}|${to}|${div}]]`;
+      }
+    }
+  },
+  {
+    id: 'coordinate',
+    label: 'html:<svg width="26" height="26" viewBox="0 0 26 26" style="display:inline-block;vertical-align:middle;"><path d="M9 3 Q6 3 6 6 L6 20 Q6 23 9 23" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M17 3 Q20 3 20 6 L20 20 Q20 23 17 23" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="10" y="12" font-family="Tahoma, sans-serif" font-size="9" fill="currentColor">a</text><text x="10" y="22" font-family="Tahoma, sans-serif" font-size="9" fill="currentColor">b</text></svg>',
+    title: 'مختصات (طول و عرض)',
+    modal: {
+      title: 'مختصات',
+      fields: [
+        { name: 'x', label: 'طول (عدد بالایی)' },
+        { name: 'y', label: 'عرض (عدد پایین)' }
+      ],
+      build: (v) => `$\\begin{bmatrix} ${v.x} \\\\ ${v.y} \\end{bmatrix}$`
+    }
+  },
+     {
+    id: 'coordsys',
+    label: 'html:<svg width="26" height="26" viewBox="0 0 26 26" style="display:inline-block;vertical-align:middle;"><line x1="3" y1="13" x2="23" y2="13" stroke="currentColor" stroke-width="1.5"/><polygon points="25,13 21,11 21,15" fill="currentColor"/><line x1="13" y1="23" x2="13" y2="3" stroke="currentColor" stroke-width="1.5"/><polygon points="13,1 11,5 15,5" fill="currentColor"/></svg>',
+    title: 'دستگاه مختصات دوبعدی',
+    modal: {
+      title: 'دستگاه مختصات دوبعدی',
+      noMiniTools: true,
+      fields: [
+        { name: 'size', label: 'بازه (مثلاً 3 یعنی از 3- تا 3+ در هر دو محور)' },
+        { name: 'x1', label: 'طول (x)', optional: true, row: 'p1', rowLabel: 'نقطه‌ی اول (اختیاری)' },
+        { name: 'y1', label: 'عرض (y)', optional: true, row: 'p1' },
+        { name: 'x2', label: 'طول (x)', optional: true, row: 'p2', rowLabel: 'نقطه‌ی دوم (اختیاری)' },
+        { name: 'y2', label: 'عرض (y)', optional: true, row: 'p2' }
+      ],
+      build: (v) => {
+        const size = v.size.trim() || '5';
+        const x1 = v.x1.trim(), y1 = v.y1.trim();
+        const x2 = v.x2.trim(), y2 = v.y2.trim();
+        const p1 = (x1 !== '' && y1 !== '') ? `${x1},${y1}` : '';
+        const p2 = (x2 !== '' && y2 !== '') ? `${x2},${y2}` : '';
+        return `[[CS|${size}|${p1}|${p2}]]`;
+      }
+    }
+  },
+  
+];
+
+let setsGroupVisible = false;
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۲: عناصر DOM
+   ═══════════════════════════════════════════════════════════ */
+const editor       = document.getElementById('editor');
+const preview      = document.getElementById('preview');
+const toolbar      = document.getElementById('toolbar');
+const modal        = document.getElementById('modal');
+const modalTitle   = document.getElementById('modalTitle');
+const modalFields  = document.getElementById('modalFields');
+const modalConfirm = document.getElementById('modalConfirm');
+const modalCancel  = document.getElementById('modalCancel');
+const modalMiniToolbar = document.getElementById('modalMiniToolbar');
+
+let lastFocusedModalInput = null;
+let currentModalBtn = null;
+let pendingImageData = null;
+
+const LRI = '\u2066';
+const PDI = '\u2069';
+const PRINT_CONTENT_WIDTH = 593;
+
+window.insertTarget = null;    // ⬅ این خط جدید
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۳: توابع کمکی
+   ═══════════════════════════════════════════════════════════ */
+function isPersianChar(c) {
+  if (!c) return false;
+  if (isPersianDigit(c)) return false;
+  const code = c.charCodeAt(0);
+  return (code >= 0x0600 && code <= 0x06FF) ||
+         (code >= 0xFB50 && code <= 0xFDFF) ||
+         (code >= 0xFE70 && code <= 0xFEFF);
+}
+
+function isPersianDigit(c) {
+  if (!c) return false;
+  const code = c.charCodeAt(0);
+  return (code >= 0x06F0 && code <= 0x06F9) ||
+         (code >= 0x0660 && code <= 0x0669);
+}
+
+function toEnglishDigit(c) {
+  const code = c.charCodeAt(0);
+  if (code >= 0x06F0 && code <= 0x06F9) return String.fromCharCode(code - 0x06F0 + 48);
+  if (code >= 0x0660 && code <= 0x0669) return String.fromCharCode(code - 0x0660 + 48);
+  return c;
+}
+
+function depthBefore(pos) {
+  let depth = 0;
+  for (let i = 0; i < pos; i++) {
+    const c = editor.value[i];
+    if (c === LRI) depth++;
+    else if (c === PDI) depth--;
+  }
+  return depth;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatNumber(n) {
+  if (Number.isInteger(n)) return String(n);
+  return String(n).replace(/\.?0+$/, '');
+}
+
+/* ⬅ تابع جدید: تبدیل اعداد به فارسی */
+function toPersianNumber(input) {
+  const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return String(input).replace(/\d/g, d => persianDigits[d]);
+}
+
+function convertDigitsToPersian(rootEl) {
+  const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  const walker = document.createTreeWalker(
+    rootEl,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  );
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue && /\d/.test(node.nodeValue)) {
+      node.nodeValue = node.nodeValue.replace(/\d/g, d => persianDigits[d]);
+    }
+  }
+}
+
+/* تبدیل حروف تکی لاتین به فرمول ایتالیک (فقط برای چاپ) */
+function italicizeVariablesForPrint(text) {
+  if (!text) return text;
+
+  // بخش‌های مخصوص (NL/CS/IMG/DRAW) رو دست‌نخورده نگه دار
+  const tagRegex = /\[\[(NL|CS|IMG|DRAW|MULTIQ)\|[^\]]+\]\]/g;
+  let result = '';
+  let lastIndex = 0;
+  let match;
+
+  while ((match = tagRegex.exec(text)) !== null) {
+    const before = text.slice(lastIndex, match.index);
+    result += italicizePlainText(before) + match[0];
+    lastIndex = match.index + match[0].length;
+  }
+  result += italicizePlainText(text.slice(lastIndex));
+  return result;
+}
+
+function italicizePlainText(text) {
+  // بخش‌های $...$ رو دست‌نخورده نگه دار
+  const parts = text.split(/(\$[^$]+\$)/g);
+
+  // لیست سفید: توابعی که نباید دست بخورند
+  const functionWords = /^(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|exp|det|mod|gcd|lcm|arcsin|arccos|arctan|sinh|cosh|tanh|arg)$/i;
+
+  return parts.map(part => {
+    if (part.startsWith('$') && part.endsWith('$')) {
+      return part;   // فرمول از قبل، دست نزن
+    }
+
+    // ✨ تغییر: هر «عبارت ریاضی» را به‌صورت یک واحد در $...$ بپیچ
+    return part.replace(
+      /[A-Za-z0-9_+\-*/=().,^\\][A-Za-z0-9_+\-*/=().,^\\ \t]*/g,
+      (match) => {
+        // فضای انتهایی رو بیرون نگه دار
+        const trailing = (match.match(/\s+$/) || [''])[0];
+        const core = match.slice(0, match.length - trailing.length);
+        if (!core) return match;
+
+        // فقط اگه حرف یا عملگر داشت، بپیچ (نه عدد خالی)
+        const hasLetter   = /[A-Za-z]/.test(core);
+        const hasOperator = /[+\-*/=()^]/.test(core);
+        if (!hasLetter && !hasOperator) return match;
+
+        // توابع سرشناس دست‌نخورده بمانند
+        if (functionWords.test(core)) return match;
+
+        return '$' + core + '$' + trailing;
+      }
+    );
+  }).join('');
+}
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۴: تولید SVG محور اعداد
+   ═══════════════════════════════════════════════════════════ */
+function generateNumberLineSVG(start, end, div) {
+  if (isNaN(start) || isNaN(end) || start >= end) {
+    return '<div style="color:#ef4444;padding:8px;">اعداد محور نامعتبر است.</div>';
+  }
+  if (div < 1) div = 1;
+
+  const range     = end - start;
+  const unitWidth = 60;
+  const padLeft   = 50;
+  const padRight  = 50;
+  const width     = range * unitWidth + padLeft + padRight;
+  const height    = 90;
+  const midY      = 45;
+  const startX    = padLeft;
+  const endX      = startX + range * unitWidth;
+
+  let els = '';
+
+  els += `<line x1="${startX - 20}" y1="${midY}" x2="${endX + 20}" y2="${midY}" stroke="#1e293b" stroke-width="2"/>`;
+  els += `<polygon points="${endX + 30},${midY} ${endX + 18},${midY - 6} ${endX + 18},${midY + 6}" fill="#1e293b"/>`;
+
+  for (let i = 0; i <= range; i++) {
+    const x = startX + i * unitWidth;
+    const value = start + i;
+
+    els += `<line x1="${x}" y1="${midY - 10}" x2="${x}" y2="${midY + 10}" stroke="#1e293b" stroke-width="2"/>`;
+    els += `<text x="${x}" y="${midY + 30}" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="14" fill="#1e293b">${value}</text>`;
+
+    if (div > 1 && i < range) {
+      for (let j = 1; j < div; j++) {
+        const subX = x + (j * unitWidth / div);
+        els += `<line x1="${subX}" y1="${midY - 5}" x2="${subX}" y2="${midY + 5}" stroke="#64748b" stroke-width="1.5"/>`;
+      }
+    }
+  }
+
+  return `<div class="numberline-block" style="overflow-x:auto;padding:10px 0;direction:ltr;"><svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width:100%;height:auto;display:block;">${els}</svg></div>`;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۵: تولید SVG دستگاه مختصات دوبعدی
+   ═══════════════════════════════════════════════════════════ */
+function generateCoordinateSystemSVG(size, points) {
+  if (isNaN(size) || size <= 0) {
+    return '<div style="color:#ef4444;padding:8px;">بازه‌ی دستگاه نامعتبر است.</div>';
+  }
+
+  const xmin = -size, xmax = size, ymin = -size, ymax = size;
+
+  const unit = 28;
+  const pad = 40;
+  const innerW = (xmax - xmin) * unit;
+  const innerH = (ymax - ymin) * unit;
+  const width = innerW + pad * 2;
+  const height = innerH + pad * 2;
+
+  const toSvgX = (v) => pad + (v - xmin) * unit;
+  const toSvgY = (v) => pad + (ymax - v) * unit;
+
+  const originX = toSvgX(0);
+  const originY = toSvgY(0);
+
+  let els = '';
+
+  /* خطوط شبکه */
+  for (let x = Math.ceil(xmin); x <= Math.floor(xmax); x++) {
+    if (x === 0) continue;
+    const sx = toSvgX(x);
+    els += `<line x1="${sx}" y1="${pad}" x2="${sx}" y2="${pad + innerH}" stroke="#e2e8f0" stroke-width="1"/>`;
+  }
+  for (let y = Math.ceil(ymin); y <= Math.floor(ymax); y++) {
+    if (y === 0) continue;
+    const sy = toSvgY(y);
+    els += `<line x1="${pad}" y1="${sy}" x2="${pad + innerW}" y2="${sy}" stroke="#e2e8f0" stroke-width="1"/>`;
+  }
+
+  /* محور x با فلش */
+  const xLeft = pad - 15, xRight = pad + innerW + 15;
+  els += `<line x1="${xLeft}" y1="${originY}" x2="${xRight}" y2="${originY}" stroke="#1e293b" stroke-width="2"/>`;
+  els += `<polygon points="${xRight + 8},${originY} ${xRight - 2},${originY - 5} ${xRight - 2},${originY + 5}" fill="#1e293b"/>`;
+  els += `<text x="${xRight + 6}" y="${originY - 8}" font-family="Tahoma, sans-serif" font-size="13" font-style="italic" fill="#1e293b">x</text>`;
+
+  /* محور y با فلش */
+  const yTop = pad - 15, yBottom = pad + innerH + 15;
+  els += `<line x1="${originX}" y1="${yBottom}" x2="${originX}" y2="${yTop}" stroke="#1e293b" stroke-width="2"/>`;
+  els += `<polygon points="${originX},${yTop - 8} ${originX - 5},${yTop + 2} ${originX + 5},${yTop + 2}" fill="#1e293b"/>`;
+  els += `<text x="${originX + 8}" y="${yTop + 4}" font-family="Tahoma, sans-serif" font-size="13" font-style="italic" fill="#1e293b">y</text>`;
+
+  /* تیک و برچسب محور x */
+  for (let x = Math.ceil(xmin); x <= Math.floor(xmax); x++) {
+    if (x === 0) continue;
+    const sx = toSvgX(x);
+    els += `<line x1="${sx}" y1="${originY - 4}" x2="${sx}" y2="${originY + 4}" stroke="#1e293b" stroke-width="1.5"/>`;
+    els += `<text x="${sx}" y="${originY + 18}" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="11" fill="#1e293b">${x}</text>`;
+  }
+
+  /* تیک و برچسب محور y */
+  for (let y = Math.ceil(ymin); y <= Math.floor(ymax); y++) {
+    if (y === 0) continue;
+    const sy = toSvgY(y);
+    els += `<line x1="${originX - 4}" y1="${sy}" x2="${originX + 4}" y2="${sy}" stroke="#1e293b" stroke-width="1.5"/>`;
+    els += `<text x="${originX - 8}" y="${sy + 4}" text-anchor="end" font-family="Tahoma, sans-serif" font-size="11" fill="#1e293b">${y}</text>`;
+  }
+
+  /* برچسب مبدأ */
+  els += `<text x="${originX - 8}" y="${originY + 16}" text-anchor="end" font-family="Tahoma, sans-serif" font-size="11" fill="#1e293b">0</text>`;
+
+  /* ─── رسم نقاط با دایره‌ی توپر ─── */
+   /* ─── رسم نقاط با دایره‌ی توپر و برچسب حرف ─── */
+  if (points && points.length > 0) {
+    points.forEach((p) => {
+      // اگه نقطه خارج از محدوده باشه، رسم نکن
+      if (p.x < xmin || p.x > xmax || p.y < ymin || p.y > ymax) return;
+
+      const cx = toSvgX(p.x);
+      const cy = toSvgY(p.y);
+
+      // دایره‌ی توپر
+      els += `<circle cx="${cx}" cy="${cy}" r="4.5" fill="#000000"/>`;
+      // حاشیه‌ی سفید نازک برای وضوح بیشتر
+      els += `<circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="#ffffff" stroke-width="1"/>`;
+
+      // برچسب حرف (A یا B)
+      if (p.label) {
+        els += `<text x="${cx + 8}" y="${cy - 8}" font-family="Tahoma, sans-serif" font-size="14" font-weight="bold" fill="#000000">${p.label}</text>`;
+      }
+    });
+  }
+
+  return `<div class="coordsys-block" style="overflow-x:auto;padding:10px 0;direction:ltr;display:flex;justify-content:flex-start;"><svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width:100%;height:auto;display:block;">${els}</svg></div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۶: افزودن تصویر
+   ═══════════════════════════════════════════════════════════ */
+function openImagePicker() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('حجم تصویر باید کمتر از ۵ مگابایت باشد.');
+      return;
+    }
+
+    try {
+      pendingImageData = await compressImage(file, 1500, 0.88);
+      openImageSizeModal();
+    } catch (err) {
+      alert('خطا در پردازش تصویر: ' + err.message);
+    }
+  });
+  input.click();
+}
+
+function compressImage(file, maxWidth, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('خطا در خواندن فایل'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('فایل تصویر معتبر نیست'));
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function openImageSizeModal() {
+  const fakeBtn = {
+    id: 'imageSize',
+    modal: {
+      title: 'اندازه‌ی تصویر',
+      noMiniTools: true,
+      fields: [
+        { 
+          name: 'width', 
+          label: `عرض تصویر (پیکسل)\n\n📐 عرض قابل استفاده در چاپ: ${PRINT_CONTENT_WIDTH} پیکسل\n\nپیشنهاد:\n• نصف صفحه: 300\n• دو سوم صفحه: 400\n• کل عرض: ${PRINT_CONTENT_WIDTH}`, 
+          optional: true 
+        }
+      ],
+      build: (v) => {
+        const w = parseInt(v.width) || 400;
+        return `[[IMG|${w}|${pendingImageData}]]`;
+      }
+    }
+  };
+  openModal(fakeBtn);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۷: ساخت نوار ابزار
+   ═══════════════════════════════════════════════════════════ */
+function initToolbar() {
+  toolbar.innerHTML = '';
+
+  BUTTONS.forEach(btn => {
+    if (btn.group === 'sets' && !setsGroupVisible) return;
+    createToolButton(btn);
+  });
+
+  const piEl = toolbar.querySelector('[data-btn-id="pi"]');
+  const toggleEl = document.createElement('button');
+  toggleEl.type = 'button';
+  toggleEl.className = 'tool-btn group-toggle';
+  toggleEl.title = 'نمایش/مخفی کردن نمادهای مجموعه';
+  toggleEl.innerHTML = '<svg width="28" height="22" viewBox="0 0 28 22" style="display:inline-block;vertical-align:middle;"><ellipse cx="10" cy="11" rx="8" ry="7" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="18" cy="11" rx="8" ry="7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+  toggleEl.addEventListener('mousedown', e => e.preventDefault());
+  toggleEl.addEventListener('click', () => {
+    setsGroupVisible = !setsGroupVisible;
+    initToolbar();
+  });
+  if (piEl && piEl.nextSibling) {
+    toolbar.insertBefore(toggleEl, piEl.nextSibling);
+  } else {
+    toolbar.appendChild(toggleEl);
+  }
+}
+
+function createToolButton(btn) {
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'tool-btn' + (btn.modal ? ' primary' : '');
+  el.title = btn.title || '';
+  el.dataset.btnId = btn.id;
+  el.addEventListener('mousedown', e => e.preventDefault());
+  el.addEventListener('click', () => handleButtonClick(btn));
+  toolbar.appendChild(el);
+  renderButtonLabel(el, btn.label);
+}
+
+function renderButtonLabel(el, label) {
+  if (label.startsWith('html:')) {
+    el.innerHTML = label.slice(5);
+    return;
+  }
+  if (label.startsWith('$') && window.katex) {
+    const tex = label.replace(/^\$|\$$/g, '');
+    try {
+      el.innerHTML = katex.renderToString(tex, { throwOnError: false });
+      return;
+    } catch (e) {}
+  }
+  el.textContent = label;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۸: کلیک روی دکمه
+   ═══════════════════════════════════════════════════════════ */
+function handleButtonClick(btn) {
+  if (btn.action === 'image') {
+    openImagePicker();
+    return;
+  }
+  if (btn.action === 'draw') {
+    openDrawModal();
+    return;
+  }
+  if (btn.action === 'multiq') {
+    openMultiQModal();
+    return;
+  }
+  if (btn.action === 'voiceText') {
+    openVoiceTextModal();
+    return;
+  }
+
+  if (btn.modal) {
+    openModal(btn);
+  } else if (btn.insert) {
+    insertAtCursor(btn.insert, btn.cursorOffset);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۹: درج در محل کرسر
+   ═══════════════════════════════════════════════════════════ */
+function insertAtCursor(text, cursorOffset) {
+  const target  = window.insertTarget || editor;
+  const isEditor = (target === editor);
+
+  const start  = target.selectionStart;
+  const end    = target.selectionEnd;
+  const before = target.value.slice(0, start);
+  const after  = target.value.slice(end);
+
+  let inserted, newPos;
+
+  // ✨ فقط اگر کل متن یک فرمول خالص بود (شروع و پایان با $)،
+  //    در LRI...PDI بپیچان. متن مختلط (فارسی + ریاضی) را دست نزن.
+  const trimmed = text.trim();
+  const isPureFormula = /^\$[^$]+\$$/.test(trimmed);
+
+  if (isPureFormula) {
+    const charBefore = before.slice(-1);
+    const needLeadingSpace =
+      charBefore &&
+      charBefore !== ' ' &&
+      charBefore !== '\n' &&
+      isPersianChar(charBefore);
+    const leadingSpace = needLeadingSpace ? ' ' : '';
+
+    inserted = leadingSpace + LRI + text + PDI;
+
+    if (typeof cursorOffset === 'number') {
+      newPos = start + leadingSpace.length + LRI.length + cursorOffset;
+    } else {
+      newPos = start + inserted.length - 1;
+    }
+  } else {
+    // متن آزاد — بدون LRI/PDI
+    inserted = text;
+    newPos = start + inserted.length;
+  }
+
+  target.value = before + inserted + after;
+  target.setSelectionRange(newPos, newPos);
+  target.focus();
+
+  if (isEditor) updatePreview();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۰: سیستم مودال
+   ═══════════════════════════════════════════════════════════ */
+function openModal(btn) {
+  currentModalBtn = btn;
+  modalTitle.textContent = btn.modal.title || '';
+  modalFields.innerHTML = '';
+
+  if (btn.modal.noMiniTools) {
+    modalMiniToolbar.style.display = 'none';
+  } else {
+    modalMiniToolbar.style.display = 'flex';
+  }
+
+  const fields = btn.modal.fields;
+  let i = 0;
+  let firstInput = null;
+
+  while (i < fields.length) {
+    const f = fields[i];
+
+    /* ─── فیلدهای دارای row: کنار هم قرار بگیرن ─── */
+    if (f.row) {
+      const rowName = f.row;
+      const rowFields = [];
+
+      while (i < fields.length && fields[i].row === rowName) {
+        rowFields.push(fields[i]);
+        i++;
+      }
+
+      const rowWrap = document.createElement('div');
+      rowWrap.className = 'modal-row';
+
+      /* عنوان ردیف (اگه داشت) */
+      if (f.rowLabel) {
+        const lb = document.createElement('label');
+        lb.textContent = f.rowLabel;
+        lb.className = 'modal-row-label';
+        rowWrap.appendChild(lb);
+      }
+
+      const inputsWrap = document.createElement('div');
+      inputsWrap.className = 'modal-row-inputs';
+
+      rowFields.forEach(rf => {
+        const item = document.createElement('div');
+        item.className = 'modal-row-input-item';
+
+        const lb = document.createElement('label');
+        lb.textContent = rf.label;
+        item.appendChild(lb);
+
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.dataset.fieldName = rf.name;
+        inp.dataset.optional = rf.optional ? 'true' : 'false';
+        inp.autocomplete = 'off';
+        inp.addEventListener('focus', () => { lastFocusedModalInput = inp; });
+        item.appendChild(inp);
+
+        inputsWrap.appendChild(item);
+        if (!firstInput) firstInput = inp;
+      });
+
+      rowWrap.appendChild(inputsWrap);
+      modalFields.appendChild(rowWrap);
+    }
+
+    /* ─── فیلد معمولی (تکی) ─── */
+    else {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-field';
+
+      if (f.label) {
+        const lb = document.createElement('label');
+        lb.textContent = f.label;
+        wrap.appendChild(lb);
+      }
+
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.dataset.fieldName = f.name;
+      inp.dataset.optional = f.optional ? 'true' : 'false';
+      inp.autocomplete = 'off';
+      inp.addEventListener('focus', () => { lastFocusedModalInput = inp; });
+      wrap.appendChild(inp);
+
+      modalFields.appendChild(wrap);
+      if (!firstInput) firstInput = inp;
+      i++;
+    }
+  }
+
+  if (firstInput) {
+    setTimeout(() => firstInput.focus(), 60);
+  }
+
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  modal.classList.remove('active');
+  currentModalBtn = null;
+  lastFocusedModalInput = null;
+  pendingImageData = null;
+  editor.focus();
+}
+
+function confirmModal() {
+  if (!currentModalBtn) return;
+
+  modalFields.querySelectorAll('input').forEach(inp => {
+    inp.value = inp.value.replace(/[۰-۹٠-٩]/g, ch => toEnglishDigit(ch));
+  });
+
+  const values = {};
+  let missingRequired = false;
+
+  modalFields.querySelectorAll('input').forEach(inp => {
+    const v = inp.value.trim();
+    values[inp.dataset.fieldName] = v;
+    const isOptional = inp.dataset.optional === 'true';
+    if (!v && !isOptional) missingRequired = true;
+  });
+
+  if (missingRequired) {
+    const firstEmpty = [...modalFields.querySelectorAll('input')]
+      .find(i => !i.value.trim() && i.dataset.optional !== 'true');
+    if (firstEmpty) firstEmpty.focus();
+    return;
+  }
+
+  const latex = currentModalBtn.modal.build(values);
+  const wasDrawSize = currentModalBtn.id === 'drawSize';
+
+  closeModal();
+
+  // اگه در حال جایگزینی marker قدیمی رسم هستیم
+  if (wasDrawSize && drawState.pendingEditingMarker) {
+    const idx = editor.value.indexOf(drawState.pendingEditingMarker);
+    if (idx >= 0) {
+      editor.value = editor.value.slice(0, idx) + latex + editor.value.slice(idx + drawState.pendingEditingMarker.length);
+      editor.focus();
+      updatePreview();
+      drawState.pendingEditingMarker = null;
+      return;
+    }
+    drawState.pendingEditingMarker = null;
+  }
+
+  insertAtCursor(latex);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۱: رندر محتوا
+   ═══════════════════════════════════════════════════════════ */
+function renderQuestionHTML(text) {
+  if (!text || !text.trim()) return '';
+
+  const regex = /\[\[(NL|CS|IMG|DRAW|MULTIQ)\|([^\]]+)\]\]/g;
+  let html = '';
+  let lastIndex = 0;
+  let match;
+  let justAfterMarker = false;
+
+  while ((match = regex.exec(text)) !== null) {
+    let before = text.slice(lastIndex, match.index);
+
+    // اگه قبلی یک marker بود و متن فعلی با newline شروع می‌شه،
+    // اون newline اضافی رو حذف کن (چون خود marker یک بلوک بصریه)
+    if (justAfterMarker && before.startsWith('\n')) {
+      before = before.slice(1);
+    }
+
+    if (before) html += processTextWithFormulas(before);
+
+    const type    = match[1];
+    const content = match[2];
+const safeMarker = match[0].replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    if (type === 'NL') {
+      const p = content.split('|');
+      html += generateNumberLineSVG(parseFloat(p[0]), parseFloat(p[1]), parseInt(p[2]) || 1);
+
+
+} else if (type === 'CS') {
+  const p = content.split('|');
+  if (p.length === 4) {
+    // فرمت قدیم — نادیده بگیر
+    const xmin = parseFloat(p[0]);
+    const xmax = parseFloat(p[1]);
+    const ymin = parseFloat(p[2]);
+    const ymax = parseFloat(p[3]);
+    const size = Math.max(Math.abs(xmin), Math.abs(xmax), Math.abs(ymin), Math.abs(ymax));
+    html += generateCoordinateSystemSVG(size, []);
+  } else {
+    const size = parseFloat(p[0]);
+    const points = [];
+    if (p[1]) {
+      const xy1 = p[1].split(',').map(parseFloat);
+      if (xy1.length === 2 && !isNaN(xy1[0]) && !isNaN(xy1[1])) {
+        points.push({ x: xy1[0], y: xy1[1], label: 'A' });   /* ← label اضافه شد */
+      }
+    }
+    if (p[2]) {
+      const xy2 = p[2].split(',').map(parseFloat);
+      if (xy2.length === 2 && !isNaN(xy2[0]) && !isNaN(xy2[1])) {
+        points.push({ x: xy2[0], y: xy2[1], label: 'B' });   /* ← label اضافه شد */
+      }
+    }
+    html += generateCoordinateSystemSVG(size, points);
+  }
+}
+else if (type === 'IMG') {
+      const parts = content.split('|');
+      let width = '';
+      let dataUrl = content;
+      if (parts.length >= 2 && /^\d+$/.test(parts[0])) {
+        width = parts[0];
+        dataUrl = parts.slice(1).join('|');
+      }
+      const widthStyle = width ? `width:${width}px;` : '';
+      html += `<div class="image-block" style="text-align:left;padding:10px 0;direction:ltr;"><img src="${dataUrl}" style="${widthStyle}max-width:100%;height:auto;border-radius:8px;border:1px solid #e2e8f0;display:inline-block;" /></div>`;
+    } else if (type === 'DRAW') {
+      try {
+        const parts = content.split('|');
+        let width = '';
+        let b64 = content;
+        if (parts.length >= 2 && /^\d+$/.test(parts[0])) {
+          width = parts[0];
+          b64 = parts.slice(1).join('|');
+        }
+        let svgString = base64Decode(b64);
+
+        const vbMatch = svgString.match(/viewBox="([^"]+)"/);
+        let aspectRatio = 1;
+        if (vbMatch) {
+          const vb = vbMatch[1].trim().split(/\s+/).map(parseFloat);
+          if (vb.length === 4 && vb[3] !== 0) {
+            aspectRatio = vb[3] / vb[2];
+          }
+        }
+
+        if (width) {
+          const w = parseInt(width);
+          const h = Math.round(w * aspectRatio);
+          svgString = svgString.replace(/<svg\b[^>]*>/, (tag) => {
+            let cleaned = tag
+              .replace(/\s+width="[^"]*"/g, '')
+              .replace(/\s+height="[^"]*"/g, '')
+              .replace(/\s+style="[^"]*"/g, '');
+            cleaned = cleaned.replace(/<\/?svg/i, '<svg')
+                             .replace(/>$/, ` style="width:${w}px;height:${h}px;display:inline-block;">`);
+            return cleaned;
+          });
+        }
+
+        
+        html += `<div class="draw-block" data-marker="${safeMarker}">${svgString}</div>`;
+      } catch (e) {
+        html += `<div style="color:#ef4444;">[خطا در شکل]</div>`;
+      }
+    }
+     else if (type === 'MULTIQ') {
+      try {
+        const data = JSON.parse(base64Decode(content));
+        html += renderMultiQHTML(data, safeMarker);
+      } catch (e) {
+        html += `<div style="color:#ef4444;">[خطا در سوال چهارقسمتی]</div>`;
+      }
+    }
+    lastIndex = match.index + match[0].length;
+    justAfterMarker = true;
+  }
+
+  if (lastIndex < text.length) {
+    let tail = text.slice(lastIndex);
+    // همون منطق برای انتهای متن
+    if (justAfterMarker && tail.startsWith('\n')) {
+      tail = tail.slice(1);
+    }
+    html += processTextWithFormulas(tail);
+  }
+
+  return html;
+}
+
+function processTextWithFormulas(text) {
+  let html = '';
+  let i = 0;
+  let inFormula = false;
+  let formulaBuf = '';
+  let textBuf = '';
+
+  function flushText() {
+    if (!textBuf) return;
+    let out = '';
+    for (let j = 0; j < textBuf.length; j++) {
+      const c = textBuf[j];
+            if (c === LRI) {
+        out += '\u200E<span class="ltr-run">';
+      } else if (c === PDI) {
+        out += '</span>';
+      } else if (c === '\u200E' || c === '\u200F') {
+        // ignore
+      } else if (c === '\n') {
+        out += '\n';
+      } else if (c === '&') {
+        out += '&amp;';
+      } else if (c === '<') {
+        out += '&lt;';
+      } else if (c === '>') {
+        out += '&gt;';
+      } else {
+        out += c;
+      }
+    }
+    html += out;
+    textBuf = '';
+  }
+
+  while (i < text.length) {
+    const ch = text[i];
+
+    if (inFormula) {
+      if (ch === '$') {
+        flushText();
+        const tex = formulaBuf;
+        if (window.katex) {
+          try {
+            html += katex.renderToString(tex, { throwOnError: false });
+          } catch (e) {
+            html += escapeHtml('$' + tex + '$');
+          }
+        } else {
+          html += escapeHtml('$' + tex + '$');
+        }
+        formulaBuf = '';
+        inFormula = false;
+      } else {
+        formulaBuf += ch;
+      }
+    } else {
+      if (ch === '$') {
+        flushText();
+        inFormula = true;
+      } else {
+        textBuf += ch;
+      }
+    }
+    i++;
+  }
+
+  flushText();
+
+  if (inFormula) {
+    html += escapeHtml('$' + formulaBuf);
+  }
+
+  return html;
+}
+
+function updatePreview() {
+  if (!editor.value.trim()) {
+    preview.innerHTML = '<span class="placeholder">پیش‌نمایش اینجا نمایش داده می‌شود...</span>';
+    return;
+  }
+  preview.innerHTML = renderQuestionHTML(editor.value);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۲: مدیریت سوالات + بارم‌بندی
+   ═══════════════════════════════════════════════════════════ */
+const questionsArray = [];
+let editingQuestionIndex = -1;   // -1 یعنی در حالت اضافه‌کردن
+
+function addQuestion() {
+  const text = editor.value;
+  if (!text) {
+    alert('اول یک سوال بنویس، بعد اضافه کن.');
+    return;
+  }
+
+  // اگه در حالت ویرایش هستیم
+  if (editingQuestionIndex >= 0 && editingQuestionIndex < questionsArray.length) {
+    questionsArray[editingQuestionIndex].text = text;
+    // نکته: score قبلی حفظ می‌شه
+    cancelEdit();  // بنر ویرایش رو ببند
+  } else {
+    // اضافه‌کردن سوال جدید
+    questionsArray.push({ text: text, score: 1 });
+  }
+
+  editor.value = '';
+  updatePreview();
+  renderQuestions();
+  editor.focus();
+}
+
+/* ─── ورود به حالت ویرایش ─── */
+function editQuestion(index) {
+  if (index < 0 || index >= questionsArray.length) return;
+  if (editingQuestionIndex >= 0) {
+    if (!confirm('در حال ویرایش سوال دیگری هستید. تغییرات فعلی حفظ می‌شود. مطمئنی؟')) return;
+  }
+
+  editingQuestionIndex = index;
+  editor.value = questionsArray[index].text;
+  updatePreview();
+
+  // نمایش بنر
+  const banner = document.getElementById('editBanner');
+  const bannerText = document.getElementById('editBannerText');
+  bannerText.textContent = `✏️ در حال ویرایش سوال ${index + 1} — بعد از تغییر، روی «اضافه کردن سوال» بزن`;
+  banner.classList.add('active');
+
+  // اسکرول به ویرایشگر
+  document.querySelector('.panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  editor.focus();
+}
+
+/* ─── لغو ویرایش ─── */
+function cancelEdit() {
+  editingQuestionIndex = -1;
+  editor.value = '';
+  updatePreview();
+
+  const banner = document.getElementById('editBanner');
+  banner.classList.remove('active');
+
+  editor.focus();
+}
+
+
+function removeQuestion(index) {
+  if (!confirm(`سوال ${index + 1} حذف شود؟`)) return;
+
+  // اگه در حال ویرایش همین سوال هستیم، حالت ویرایش رو لغو کن
+  if (editingQuestionIndex === index) {
+    cancelEdit();
+  } else if (editingQuestionIndex > index) {
+    editingQuestionIndex--;
+  }
+
+  questionsArray.splice(index, 1);
+  renderQuestions();
+}
+
+function moveQuestion(index, dir) {
+  const newIndex = index + dir;
+  if (newIndex < 0 || newIndex >= questionsArray.length) return;
+  [questionsArray[index], questionsArray[newIndex]] = [questionsArray[newIndex], questionsArray[index]];
+  renderQuestions();
+}
+
+function updateScore(index, value) {
+  const s = parseFloat(value);
+  questionsArray[index].score = (isNaN(s) || s < 0) ? 0 : s;
+  updateTotalScore();
+}
+
+function updateTotalScore() {
+  const total = questionsArray.reduce((sum, q) => sum + (q.score || 0), 0);
+  const totalEl = document.getElementById('totalScore');
+  if (totalEl) totalEl.textContent = formatNumber(total);
+}
+
+function renderQuestions() {
+  const panel = document.getElementById('questionsPanel');
+  const list  = document.getElementById('questionsList');
+  const count = document.getElementById('questionsCount');
+
+  if (questionsArray.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  count.textContent = questionsArray.length;
+
+  let html = '';
+  questionsArray.forEach((q, i) => {
+    html += `
+      <div class="question-card">
+        <div class="question-card-header">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span class="num">سوال ${i + 1}</span>
+            <div class="score-wrap">
+              <span>بارم:</span>
+              <input type="number"
+                     class="score-input"
+                     value="${q.score}"
+                     min="0"
+                     step="0.25"
+                     onchange="updateScore(${i}, this.value)" />
+            </div>
+          </div>
+                  <div class="question-card-actions">
+            <button class="qc-btn edit" onclick="editQuestion(${i})" title="ویرایش">✏️</button>
+            <button class="qc-btn" onclick="moveQuestion(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="انتقال به بالا">↑</button>
+            <button class="qc-btn" onclick="moveQuestion(${i}, 1)" ${i === questionsArray.length - 1 ? 'disabled' : ''} title="انتقال به پایین">↓</button>
+            <button class="qc-btn del" onclick="removeQuestion(${i})" title="حذف">✕</button>
+          </div>
+        </div>
+        <div class="question-card-body">${renderQuestionHTML(q.text)}</div>
+      </div>
+    `;
+  });
+  list.innerHTML = html;
+
+  updateTotalScore();
+}
+
+window.moveQuestion = moveQuestion;
+window.removeQuestion = removeQuestion;
+window.updateScore = updateScore;
+window.editQuestion = editQuestion;
+
+
+/* ═══════════════════════════════════════════════════════════
+   ۳.۱۳ چاپ و ذخیره PDF — بازنویسی‌شده
+   ═══════════════════════════════════════════════════════════ */
+function openPrintSettings() {
+  if (questionsArray.length === 0) {
+    alert('هنوز هیچ سوالی اضافه نکردی. اول چند سوال بنویس و اضافه کن.');
+    return;
+  }
+
+  const saved = JSON.parse(localStorage.getItem('examInfo') || '{}');
+  document.getElementById('ps_examTitle').value      = saved.examTitle || '';
+  document.getElementById('ps_province').value       = saved.province  || '';
+  document.getElementById('ps_school').value         = saved.school    || '';
+  document.getElementById('ps_grade').value          = saved.grade     || '';
+  document.getElementById('ps_class').value          = saved.class     || '';
+  document.getElementById('ps_teacher').value        = saved.teacher   || '';
+  document.getElementById('ps_duration').value       = saved.duration  || '';
+  document.getElementById('ps_date').value           = saved.date      !== undefined ? saved.date : getTodayShamsi();
+  document.getElementById('ps_totalOverride').value  = saved.totalOverride || '';
+document.getElementById('ps_persianDigits').checked = saved.persianDigits !== false;
+  document.getElementById('printSettingsModal').classList.add('active');
+  setTimeout(() => document.getElementById('ps_examTitle').focus(), 80);
+}
+
+function closePrintSettings() {
+  document.getElementById('printSettingsModal').classList.remove('active');
+}
+
+function getTodayShamsi() {
+  try {
+    const fmt = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+    return fmt.format(new Date());
+  } catch (e) {
+    return '';
+  }
+}
+
+function setTextOrHide(id, value, hideOnEmpty) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!value && hideOnEmpty) {
+    el.textContent = '';
+    return false;
+  }
+  el.textContent = value || '';
+  return true;
+}
+
+function doPrint() {
+  const examTitle = document.getElementById('ps_examTitle').value.trim();
+  if (!examTitle) {
+    alert('عنوان آزمون را وارد کن.');
+    document.getElementById('ps_examTitle').focus();
+    return;
+  }
+
+  const totalOverride = document.getElementById('ps_totalOverride').value.trim();
+const persianDigits = document.getElementById('ps_persianDigits').checked;
+  const info = {
+    examTitle,
+    province: document.getElementById('ps_province').value.trim(),
+    school:   document.getElementById('ps_school').value.trim(),
+    grade:    document.getElementById('ps_grade').value.trim(),
+    class:    document.getElementById('ps_class').value.trim(),
+    teacher:  document.getElementById('ps_teacher').value.trim(),
+    duration: document.getElementById('ps_duration').value.trim(),
+    date:     document.getElementById('ps_date').value.trim(),
+    totalOverride,
+persianDigits 
+  };
+
+  localStorage.setItem('examInfo', JSON.stringify(info));
+
+  const autoTotal  = questionsArray.reduce((sum, q) => sum + (q.score || 0), 0);
+  const finalTotal = totalOverride || formatNumber(autoTotal);
+
+  /* پر کردن سربرگ */
+  setTextOrHide('pr_examTitle', info.examTitle, false);
+  setTextOrHide('pr_province',  info.province,  false);
+  setTextOrHide('pr_school',    info.school,    false);
+  setTextOrHide('pr_grade',     info.grade,     false);
+  setTextOrHide('pr_class',     info.class,     false);
+  setTextOrHide('pr_duration',  info.duration,  false);
+  setTextOrHide('pr_date',      info.date,      false);
+  setTextOrHide('pr_total',     finalTotal,     false);
+
+  /* دبیر */
+  const teacherEl = document.getElementById('pr_teacher');
+  teacherEl.textContent = info.teacher ? `دبیر: ${info.teacher}` : '';
+
+  /* مخفی کردن ردیف‌های خالی */
+  document.getElementById('pr_grade_row').style.display = info.grade ? '' : 'none';
+  document.getElementById('pr_exam_row').style.display  = examTitle ? '' : 'none';
+  document.getElementById('pr_date_row').style.display  = info.date ? '' : 'none';
+  document.getElementById('pr_duration_wrap').style.display = info.duration ? '' : 'none';
+
+  /* سوالات — با شماره فارسی و کادر بارم سمت چپ */
+  const container = document.getElementById('printQuestions');
+  let html = '';
+  questionsArray.forEach((q, i) => {
+    const scoreVal = q.score ? formatNumber(q.score) : '';
+    const persianNum = toPersianNumber(i + 1);
+const italicText = italicizeVariablesForPrint(q.text);
+    html += `<div class="print-question"><div class="pq-num">${persianNum})</div><div class="pq-content">${renderQuestionHTML(italicText)}</div><div class="pq-score"><div class="pq-score-label">بارم</div><div class="pq-score-value">${toPersianNumber(scoreVal)}</div></div></div>`;
+  });
+  container.innerHTML = html;
+
+if (persianDigits) {
+  convertDigitsToPersian(document.getElementById('printLayout'));
+}
+
+closePrintSettings();
+
+  setTimeout(() => {
+    window.print();
+  }, 250);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۴: رویدادها
+   ═══════════════════════════════════════════════════════════ */
+document.getElementById('drawUndoBtn').addEventListener('click', () => {
+  if (drawState.shapes.length > 0) {
+    drawState.shapes.pop();
+    updateDrawCanvas();
+  }
+});
+
+document.getElementById('drawClearBtn').addEventListener('click', () => {
+  if (drawState.shapes.length === 0) return;
+  if (confirm('همه شکل‌ها پاک شوند؟')) {
+    drawState.shapes = [];
+    drawState.currentShape = null;
+    updateDrawCanvas();
+  }
+});
+
+document.getElementById('drawCancelBtn').addEventListener('click', closeDrawModal);
+document.getElementById('drawInsertBtn').addEventListener('click', insertDraw);
+
+document.getElementById('drawModal').addEventListener('click', e => {
+  if (e.target.id === 'drawModal') closeDrawModal();
+});
+
+document.getElementById('drawModal').addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawModal();
+});
+
+// رویداد کلیک روی SVG در پیش‌نمایش برای ویرایش
+preview.addEventListener('click', (e) => {
+  // ─── کلیک روی شکل رسم ───
+  const drawBlock = e.target.closest('.draw-block');
+  if (drawBlock) {
+    const marker = drawBlock.dataset.marker;
+    if (marker) {
+      openDrawModal(marker);
+      return;
+    }
+  }
+
+  // ─── کلیک روی سوال چهارقسمتی ───
+  const multiqBlock = e.target.closest('.multiq-block');
+  if (multiqBlock) {
+    const marker = multiqBlock.dataset.marker;
+    if (marker) {
+      openMultiQModal(marker);
+      return;
+    }
+  }
+});
+
+// اتصال رویدادهای بوم در زمان راه‌اندازی
+bindDrawCanvasEvents();
+
+// ─── ۳.۱۴.۱ رویداد تایپ در ویرایشگر ───
+editor.addEventListener('input', (e) => {
+  if (e.inputType === 'insertText' && e.data && e.data.length === 1) {
+    const typed = e.data;
+
+    if (isPersianDigit(typed)) {
+      const pos = editor.selectionStart;
+      const before   = editor.value.slice(0, pos - 1);
+      const after    = editor.value.slice(pos);
+      const englishD = toEnglishDigit(typed);
+
+      editor.value = before + englishD + after;
+      editor.setSelectionRange(pos, pos);
+      updatePreview();
+      return;
+    }
+
+    if (isPersianChar(typed)) {
+      const pos = editor.selectionStart;
+      const depth = depthBefore(pos - 1);
+
+      if (depth > 0) {
+        const before    = editor.value.slice(0, pos - 1);
+        const typedChar = editor.value[pos - 1];
+        const after     = editor.value.slice(pos);
+        const closer    = PDI.repeat(depth);
+
+        const lastChar = before.slice(-1);
+        const needSpace = lastChar && lastChar !== ' ' && lastChar !== '\n';
+        const space = needSpace ? ' ' : '';
+
+        editor.value = before + closer + space + typedChar + after;
+        const newPos = (before + closer + space + typedChar).length;
+        editor.setSelectionRange(newPos, newPos);
+      }
+    }
+  }
+
+  updatePreview();
+});
+
+// ─── ۳.۱۴.۲ رویدادهای مودال اصلی ───
+modalConfirm.addEventListener('click', confirmModal);
+modalCancel.addEventListener('click', closeModal);
+
+modal.addEventListener('click', e => {
+  if (e.target === modal) closeModal();
+});
+
+modal.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    confirmModal();
+  }
+  if (e.key === 'Escape') closeModal();
+});
+
+// ─── ۳.۱۴.۳ دکمه اضافه کردن سوال ───
+document.getElementById('addQuestionBtn').addEventListener('click', addQuestion);
+
+// ─── ۳.۱۴.۴ دکمه پاک کردن ویرایشگر ───
+
+
+// ─── ۳.۱۴.۵ دکمه حذف همه سوالات ───
+
+
+// ─── ۳.۱۴.۶ رویدادهای چاپ ───
+document.getElementById('printBtn').addEventListener('click', openPrintSettings);
+document.getElementById('ps_cancel').addEventListener('click', closePrintSettings);
+document.getElementById('ps_confirm').addEventListener('click', doPrint);
+
+document.getElementById('printSettingsModal').addEventListener('click', e => {
+  if (e.target.id === 'printSettingsModal') closePrintSettings();
+});
+
+document.getElementById('printSettingsModal').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    doPrint();
+  }
+  if (e.key === 'Escape') closePrintSettings();
+});
+
+// ─── ۳.۱۴.۷ دکمه‌های ذخیره/بارگذاری ───
+
+// ─── ۳.۱۴.۹ دکمه‌های دانلود و بارگذاری فایل ───
+document.getElementById('downloadFileBtn').addEventListener('click', downloadExamFile);
+document.getElementById('uploadFileBtn').addEventListener('click', uploadExamFile);
+
+// ─── ۳.۱۴.۱۰ دکمه لغو ویرایش ───
+document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ─── ۳.۱۴.۸ رویدادهای مودال سوال چهارقسمتی ───
+document.getElementById('mqCancelBtn').addEventListener('click', closeMultiQModal);
+document.getElementById('mqInsertBtn').addEventListener('click', confirmMultiQ);
+
+document.getElementById('multiQModal').addEventListener('click', e => {
+  if (e.target.id === 'multiQModal') closeMultiQModal();
+});
+
+document.getElementById('multiQModal').addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeMultiQModal();
+});
+
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۵: دکمه‌های داخل مودال
+   ═══════════════════════════════════════════════════════════ */
+
+// ─── ۳.۱۵.۱ دکمه توان ───
+document.getElementById('modalPowBtn').addEventListener('mousedown', e => e.preventDefault());
+document.getElementById('modalPowBtn').addEventListener('click', () => {
+  let inp = lastFocusedModalInput;
+  if (!inp) {
+    inp = modalFields.querySelector('input');
+    if (inp) inp.focus();
+    else return;
+  }
+  const start = inp.selectionStart;
+  const end   = inp.selectionEnd;
+  const before = inp.value.slice(0, start);
+  const after  = inp.value.slice(end);
+
+  const inserted = '^{}';
+  inp.value = before + inserted + after;
+  const newPos = start + 2;
+  inp.setSelectionRange(newPos, newPos);
+  inp.focus();
+});
+
+// ─── ۳.۱۵.۲ دکمه رادیکال ───
+document.getElementById('modalSqrtBtn').addEventListener('mousedown', e => e.preventDefault());
+document.getElementById('modalSqrtBtn').addEventListener('click', () => {
+  let inp = lastFocusedModalInput;
+  if (!inp) {
+    inp = modalFields.querySelector('input');
+    if (inp) inp.focus();
+    else return;
+  }
+  const start = inp.selectionStart;
+  const end   = inp.selectionEnd;
+  const before = inp.value.slice(0, start);
+  const after  = inp.value.slice(end);
+
+  const inserted = '\\sqrt{}';
+  inp.value = before + inserted + after;
+  const newPos = start + 6;
+  inp.setSelectionRange(newPos, newPos);
+  inp.focus();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۷: ابزار رسم شکل هندسی
+   ═══════════════════════════════════════════════════════════ */
+/* ─── کدگذاری base64 (استفاده در بخش‌های دیگر) ─── */
+function base64Encode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function base64Decode(b64) {
+  return decodeURIComponent(escape(atob(b64)));
+}
+
+/* ─── ابعاد شبکه ─── */
+const DRAW_N    = 10;
+const DRAW_CELL = 40;
+const DRAW_PAD  = 40;
+const DRAW_SIZE = DRAW_PAD * 2 + DRAW_N * DRAW_CELL;
+
+/* ─── وضعیت ابزار ─── */
+let drawState = {
+  shapes: [],
+  tool: 'line',
+  lineStart: null,
+  linePreview: null,
+  circleStart: null,
+  circlePreview: null,
+  editingMarker: null,
+  pendingSvg: null,
+  pendingNaturalWidth: null,
+  pendingEditingMarker: null,
+  lastTapTime: 0
+};
+
+/* ─── تبدیل مختصات شبکه ─── */
+function drawToX(x) { return DRAW_PAD + x * DRAW_CELL; }
+function drawToY(y) { return DRAW_PAD + (DRAW_N - y) * DRAW_CELL; }
+function drawFmt(v) {
+  const n = Math.round(v * 1000) / 1000;
+  return Number.isInteger(n) ? String(n) : String(n);
+}
+function drawEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function drawParseNum(s) {
+  if (s === undefined || s === null) return NaN;
+  s = String(s).trim()
+    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .replace(/[−–—]/g, '-');
+  return parseFloat(s);
+}
+
+/* ─── پیام‌های راهنما ─── */
+const DRAW_HINT_LINE   = 'روی شبکه دبل‌کلیک کن — نقطه اول، بعد نقطه دوم';
+const DRAW_HINT_LINE_2 = 'حالا نقطه دوم را دبل‌کلیک کن';
+const DRAW_HINT_CIRC   = 'مرکز را دبل‌کلیک کن، بعد نقطه‌ی روی دایره';
+const DRAW_HINT_CIRC_2 = 'حالا نقطه‌ای روی محیط دایره دبل‌کلیک کن';
+
+function setDrawHint(text) {
+  const el = document.getElementById('drawHint');
+  if (el) el.textContent = text;
+}
+
+/* ─── رندر بوم ─── */
+function updateDrawCanvas(skipList) {
+  const svg = document.getElementById('drawCanvas');
+  if (!svg) return;
+
+  let h = `<rect width="${DRAW_SIZE}" height="${DRAW_SIZE}" fill="white"/>`;
+
+  for (let i = 0; i <= DRAW_N; i++) {
+    const p = DRAW_PAD + i * DRAW_CELL;
+    h += `<line x1="${p}" y1="${DRAW_PAD}" x2="${p}" y2="${DRAW_PAD+DRAW_N*DRAW_CELL}" stroke="#e2e8f0"/>`;
+    h += `<line x1="${DRAW_PAD}" y1="${p}" x2="${DRAW_PAD+DRAW_N*DRAW_CELL}" y2="${p}" stroke="#e2e8f0"/>`;
+  }
+
+  const oy = DRAW_PAD + DRAW_N * DRAW_CELL;
+  const ex = DRAW_PAD + DRAW_N * DRAW_CELL;
+  h += `<line x1="${DRAW_PAD}" y1="${oy}" x2="${ex+20}" y2="${oy}" stroke="#334155" stroke-width="2"/>`;
+  h += `<polygon points="${ex+28},${oy} ${ex+18},${oy-5} ${ex+18},${oy+5}" fill="#334155"/>`;
+  h += `<line x1="${DRAW_PAD}" y1="${oy}" x2="${DRAW_PAD}" y2="${DRAW_PAD-20}" stroke="#334155" stroke-width="2"/>`;
+  h += `<polygon points="${DRAW_PAD},${DRAW_PAD-28} ${DRAW_PAD-5},${DRAW_PAD-18} ${DRAW_PAD+5},${DRAW_PAD-18}" fill="#334155"/>`;
+
+  for (let i = 1; i <= DRAW_N; i++) {
+    h += `<text x="${DRAW_PAD+i*DRAW_CELL}" y="${oy+15}" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Tahoma">${i}</text>`;
+    h += `<text x="${DRAW_PAD-8}" y="${DRAW_PAD+(DRAW_N-i)*DRAW_CELL+4}" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Tahoma">${i}</text>`;
+  }
+  h += `<text x="${DRAW_PAD-8}" y="${oy+15}" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Tahoma">0</text>`;
+
+  drawState.shapes.forEach(s => {
+    if (s.type === 'line') {
+      h += `<line x1="${drawToX(s.x1)}" y1="${drawToY(s.y1)}" x2="${drawToX(s.x2)}" y2="${drawToY(s.y2)}" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>`;
+    } else if (s.type === 'circle') {
+      h += `<circle cx="${drawToX(s.cx)}" cy="${drawToY(s.cy)}" r="${s.r*DRAW_CELL}" fill="none" stroke="#1e293b" stroke-width="2"/>`;
+    } else if (s.type === 'text') {
+      h += `<text x="${drawToX(s.x)}" y="${drawToY(s.y)}" text-anchor="middle" dominant-baseline="middle" font-family="Tahoma" font-size="15" font-weight="bold" fill="#1e293b">${drawEsc(s.text)}</text>`;
+    }
+  });
+
+  if (drawState.lineStart && drawState.linePreview) {
+    h += `<line x1="${drawToX(drawState.lineStart.x)}" y1="${drawToY(drawState.lineStart.y)}" x2="${drawToX(drawState.linePreview.x)}" y2="${drawToY(drawState.linePreview.y)}" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4"/>`;
+  }
+  if (drawState.lineStart) {
+    h += `<circle cx="${drawToX(drawState.lineStart.x)}" cy="${drawToY(drawState.lineStart.y)}" r="5" fill="#3b82f6"/>`;
+    h += `<circle cx="${drawToX(drawState.lineStart.x)}" cy="${drawToY(drawState.lineStart.y)}" r="9" fill="none" stroke="#3b82f6" stroke-width="1.5"/>`;
+  }
+
+  if (drawState.circleStart && drawState.circlePreview) {
+    const r = Math.hypot(drawState.circlePreview.x - drawState.circleStart.x, drawState.circlePreview.y - drawState.circleStart.y) * DRAW_CELL;
+    if (r > 0) {
+      h += `<circle cx="${drawToX(drawState.circleStart.x)}" cy="${drawToY(drawState.circleStart.y)}" r="${r.toFixed(1)}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 5"/>`;
+      h += `<line x1="${drawToX(drawState.circleStart.x)}" y1="${drawToY(drawState.circleStart.y)}" x2="${drawToX(drawState.circlePreview.x)}" y2="${drawToY(drawState.circlePreview.y)}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>`;
+      const mx = (drawToX(drawState.circleStart.x) + drawToX(drawState.circlePreview.x)) / 2;
+      const my = (drawToY(drawState.circleStart.y) + drawToY(drawState.circlePreview.y)) / 2;
+      const rText = (Math.round(r / DRAW_CELL * 100) / 100).toString();
+      h += `<text x="${mx}" y="${my - 6}" text-anchor="middle" font-size="12" fill="#3b82f6" font-family="Tahoma" font-weight="bold">r = ${rText}</text>`;
+    }
+  }
+  if (drawState.circleStart) {
+    h += `<circle cx="${drawToX(drawState.circleStart.x)}" cy="${drawToY(drawState.circleStart.y)}" r="5" fill="#f59e0b"/>`;
+    h += `<circle cx="${drawToX(drawState.circleStart.x)}" cy="${drawToY(drawState.circleStart.y)}" r="9" fill="none" stroke="#f59e0b" stroke-width="1.5"/>`;
+  }
+
+  svg.innerHTML = h;
+
+  /* اگه skipList نباشه، لیست رو هم رندر کن */
+  if (!skipList) renderDrawShapeList();
+}
+
+/* ─── لیست شکل‌های داخل مودال ─── */
+function renderDrawShapeList() {
+  const list = document.getElementById('drawShapeList');
+  if (!list) return;
+  if (drawState.shapes.length === 0) { list.innerHTML = ''; return; }
+
+  const inStyle  = "width:38px;padding:3px 4px;font-size:12px;font-family:'Courier New',monospace;text-align:center;direction:ltr;border:1px solid #cbd5e1;border-radius:4px;outline:none;background:#fff;";
+  const inTxt    = "width:54px;padding:3px 4px;font-size:12px;font-family:Tahoma;text-align:center;border:1px solid #cbd5e1;border-radius:4px;outline:none;background:#fff;direction:rtl;";
+  const tagStyle = "font-weight:700;color:#1e40af;font-size:11.5px;min-width:44px;";
+  const arrow    = "color:#94a3b8;font-size:12px;";
+
+  let html = '';
+  drawState.shapes.forEach((s, i) => {
+    html += `<div style="display:flex;align-items:center;gap:4px;padding:5px 8px;background:#f1f5f9;border-right:3px solid #3b82f6;border-radius:6px;margin-bottom:4px;font-size:12px;flex-wrap:wrap;direction:rtl;">`;
+
+    if (s.type === 'line') {
+      html += `<span style="${tagStyle}">خط ${i+1}</span>`;
+      html += `<span style="${arrow}">از</span>`;
+      html += `<input type="text" data-i="${i}" data-k="x1" value="${drawFmt(s.x1)}" style="${inStyle}">`;
+      html += `<input type="text" data-i="${i}" data-k="y1" value="${drawFmt(s.y1)}" style="${inStyle}">`;
+      html += `<span style="${arrow}">به</span>`;
+      html += `<input type="text" data-i="${i}" data-k="x2" value="${drawFmt(s.x2)}" style="${inStyle}">`;
+      html += `<input type="text" data-i="${i}" data-k="y2" value="${drawFmt(s.y2)}" style="${inStyle}">`;
+    } else if (s.type === 'circle') {
+      html += `<span style="${tagStyle}">دایره ${i+1}</span>`;
+      html += `<span style="${arrow}">مرکز</span>`;
+      html += `<input type="text" data-i="${i}" data-k="cx" value="${drawFmt(s.cx)}" style="${inStyle}">`;
+      html += `<input type="text" data-i="${i}" data-k="cy" value="${drawFmt(s.cy)}" style="${inStyle}">`;
+      html += `<span style="${arrow}">r</span>`;
+      html += `<input type="text" data-i="${i}" data-k="r" value="${drawFmt(s.r)}" style="${inStyle}">`;
+    } else if (s.type === 'text') {
+      html += `<span style="${tagStyle}">متن ${i+1}</span>`;
+      html += `<input type="text" data-i="${i}" data-k="x" value="${drawFmt(s.x)}" style="${inStyle}">`;
+      html += `<input type="text" data-i="${i}" data-k="y" value="${drawFmt(s.y)}" style="${inStyle}">`;
+      html += `<input type="text" data-i="${i}" data-k="text" value="${drawEsc(s.text)}" style="${inTxt}">`;
+    }
+
+    html += `<button type="button" data-draw-del="${i}" style="margin-right:auto;background:#fee2e2;color:#991b1b;border:none;border-radius:4px;padding:3px 9px;cursor:pointer;font-family:Tahoma;font-size:12px;">✕</button>`;
+    html += `</div>`;
+  });
+  list.innerHTML = html;
+
+  /* ─── ویرایش زنده‌ی مختصات ─── */
+  list.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const i = parseInt(inp.dataset.i);
+      const k = inp.dataset.k;
+
+      if (k === 'text') {
+        drawState.shapes[i][k] = inp.value;
+      } else {
+        const v = drawParseNum(inp.value);
+        if (!isNaN(v)) drawState.shapes[i][k] = v;
+      }
+
+      /* فقط SVG رو رندر کن — لیست دست نخوره تا فوکوس از دست نره */
+      updateDrawCanvas(true);
+    });
+
+    /* فوکوس رو از دست نده */
+    inp.addEventListener('blur', () => {
+      /* اختیاری: می‌تونی اینجا مقدار نهایی رو نرمال کنی */
+    });
+  });
+
+  /* ─── حذف ─── */
+  list.querySelectorAll('[data-draw-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      drawState.shapes.splice(parseInt(btn.dataset.drawDel), 1);
+      updateDrawCanvas();
+    });
+  });
+}
+
+/* ─── تبدیل موقعیت کلیک به مختصات شبکه ─── */
+function getDrawGridCoord(e) {
+  const svg = document.getElementById('drawCanvas');
+  const rect = svg.getBoundingClientRect();
+  const px = (e.clientX - rect.left) * (DRAW_SIZE / rect.width);
+  const py = (e.clientY - rect.top)  * (DRAW_SIZE / rect.height);
+  let x = (px - DRAW_PAD) / DRAW_CELL;
+  let y = DRAW_N - (py - DRAW_PAD) / DRAW_CELL;
+  x = Math.round(x * 2) / 2;
+  y = Math.round(y * 2) / 2;
+  return { x, y };
+}
+
+/* ─── دبل‌کلیک روی بوم ─── */
+function onDrawPointerDown(e) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const now = Date.now();
+  if (now - drawState.lastTapTime < 350) {
+    drawState.lastTapTime = 0;
+    handleDrawDoubleTap(getDrawGridCoord(e));
+  } else {
+    drawState.lastTapTime = now;
+  }
+}
+
+function onDrawPointerMove(e) {
+  const pos = getDrawGridCoord(e);
+  const cx = Math.max(0, Math.min(DRAW_N, pos.x));
+  const cy = Math.max(0, Math.min(DRAW_N, pos.y));
+
+  let need = false;
+  if (drawState.tool === 'line' && drawState.lineStart) {
+    drawState.linePreview = { x: cx, y: cy };
+    need = true;
+  } else if (drawState.tool === 'circle' && drawState.circleStart) {
+    drawState.circlePreview = { x: cx, y: cy };
+    need = true;
+  }
+  if (need) updateDrawCanvas();
+}
+
+function onDrawPointerLeave() {
+  if (drawState.lineStart)   { drawState.linePreview = null;   updateDrawCanvas(); }
+  if (drawState.circleStart) { drawState.circlePreview = null; updateDrawCanvas(); }
+}
+
+function handleDrawDoubleTap(pos) {
+  if (pos.x < 0 || pos.x > DRAW_N || pos.y < 0 || pos.y > DRAW_N) return;
+
+  if (drawState.tool === 'line') {
+    if (!drawState.lineStart) {
+      drawState.lineStart = { x: pos.x, y: pos.y };
+      setDrawHint(DRAW_HINT_LINE_2);
+    } else {
+      if (pos.x === drawState.lineStart.x && pos.y === drawState.lineStart.y) {
+        drawState.lineStart = null;
+        drawState.linePreview = null;
+        setDrawHint(DRAW_HINT_LINE);
+      } else {
+        drawState.shapes.push({
+          type: 'line',
+          x1: drawState.lineStart.x, y1: drawState.lineStart.y,
+          x2: pos.x, y2: pos.y
+        });
+        drawState.lineStart = null;
+        drawState.linePreview = null;
+        setDrawHint(DRAW_HINT_LINE);
+      }
+    }
+    updateDrawCanvas();
+    return;
+  }
+
+  if (drawState.tool === 'circle') {
+    if (!drawState.circleStart) {
+      drawState.circleStart = { x: pos.x, y: pos.y };
+      setDrawHint(DRAW_HINT_CIRC_2);
+    } else {
+      const dx = pos.x - drawState.circleStart.x;
+      const dy = pos.y - drawState.circleStart.y;
+      const r = Math.round(Math.hypot(dx, dy) * 1000) / 1000;
+      if (r <= 0) {
+        drawState.circleStart = null;
+        drawState.circlePreview = null;
+        setDrawHint(DRAW_HINT_CIRC);
+      } else {
+        drawState.shapes.push({
+          type: 'circle',
+          cx: drawState.circleStart.x,
+          cy: drawState.circleStart.y,
+          r: r
+        });
+        drawState.circleStart = null;
+        drawState.circlePreview = null;
+        setDrawHint(DRAW_HINT_CIRC);
+      }
+    }
+    updateDrawCanvas();
+    return;
+  }
+}
+
+/* ─── نوار ابزار مودال ─── */
+function bindDrawToolbar() {
+  const tb = document.getElementById('drawToolbar');
+  if (!tb || tb.dataset.bound === '1') return;
+  tb.dataset.bound = '1';
+
+  tb.querySelectorAll('[data-grid-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.gridTool;
+      if (t === 'text') { openDrawTextPrompt(); return; }
+
+      drawState.tool = t;
+      tb.querySelectorAll('[data-grid-tool]').forEach(b =>
+        b.classList.toggle('active', b === btn));
+      drawState.lineStart = null;   drawState.linePreview = null;
+      drawState.circleStart = null; drawState.circlePreview = null;
+      setDrawHint(t === 'line' ? DRAW_HINT_LINE : DRAW_HINT_CIRC);
+      updateDrawCanvas();
+    });
+  });
+}
+
+function openDrawTextPrompt() {
+  const txt = prompt('متن مورد نظر را وارد کن:');
+  if (!txt || !txt.trim()) return;
+  const xStr = prompt('مختصات x (بین ۰ تا ۱۰):');
+  if (xStr === null) return;
+  const yStr = prompt('مختصات y (بین ۰ تا ۱۰):');
+  if (yStr === null) return;
+
+  const x = drawParseNum(xStr);
+  const y = drawParseNum(yStr);
+
+  if (isNaN(x) || isNaN(y) || x < 0 || x > DRAW_N || y < 0 || y > DRAW_N) {
+    alert('مختصات نامعتبر است.');
+    return;
+  }
+  drawState.shapes.push({ type: 'text', x, y, text: txt.trim() });
+  updateDrawCanvas();
+}
+
+/* ─── اتصال رویدادهای بوم (یک‌بار) ─── */
+function bindDrawCanvasEvents() {
+  const svg = document.getElementById('drawCanvas');
+  if (!svg || svg.dataset.bound === '1') return;
+  svg.dataset.bound = '1';
+  svg.addEventListener('pointerdown', onDrawPointerDown);
+  svg.addEventListener('pointermove', onDrawPointerMove);
+  svg.addEventListener('pointerleave', onDrawPointerLeave);
+  svg.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ─── باز و بسته کردن مودال ─── */
+function openDrawModal(editingMarkerText) {
+  drawState.shapes = [];
+  drawState.lineStart = null;   drawState.linePreview = null;
+  drawState.circleStart = null; drawState.circlePreview = null;
+  drawState.tool = 'line';
+  drawState.editingMarker = null;
+
+  if (editingMarkerText) {
+    try {
+      const m = editingMarkerText.match(/^\[\[DRAW\|(?:(\d+)\|)?(.+)\]\]$/);
+      if (m) {
+        const svgString = base64Decode(m[2]);
+        const mData = svgString.match(/data-shapes="([^"]+)"/);
+        if (mData) {
+          const shapesData = JSON.parse(base64Decode(mData[1]));
+          if (Array.isArray(shapesData)) drawState.shapes = shapesData;
+        }
+        drawState.editingMarker = editingMarkerText;
+      }
+    } catch (err) { /* بوم خالی */ }
+  }
+
+  const tb = document.getElementById('drawToolbar');
+  if (tb) tb.querySelectorAll('[data-grid-tool]').forEach(b =>
+    b.classList.toggle('active', b.dataset.gridTool === 'line'));
+
+  setDrawHint(DRAW_HINT_LINE);
+  bindDrawToolbar();
+  bindDrawCanvasEvents();
+  updateDrawCanvas();
+
+  document.getElementById('drawModal').classList.add('active');
+}
+
+function closeDrawModal() {
+  document.getElementById('drawModal').classList.remove('active');
+  drawState.shapes = [];
+  drawState.lineStart = null;   drawState.linePreview = null;
+  drawState.circleStart = null; drawState.circlePreview = null;
+  drawState.editingMarker = null;
+  editor.focus();
+}
+
+/* ─── درج شکل (تبدیل به SVG و ساخت مارکر) ─── */
+function insertDraw() {
+  if (drawState.shapes.length === 0) {
+    alert('اول یک شکل بکش.');
+    return;
+  }
+
+  let els = '';
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  function bb(x, y) {
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+
+  drawState.shapes.forEach(s => {
+    if (s.type === 'line') {
+      const x1 = drawToX(s.x1), y1 = drawToY(s.y1);
+      const x2 = drawToX(s.x2), y2 = drawToY(s.y2);
+      els += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />`;
+      bb(x1, y1); bb(x2, y2);
+    } else if (s.type === 'circle') {
+      const cx = drawToX(s.cx), cy = drawToY(s.cy), r = s.r * DRAW_CELL;
+      els += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${r.toFixed(1)}" ry="${r.toFixed(1)}" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />`;
+      bb(cx - r, cy - r); bb(cx + r, cy + r);
+    } else if (s.type === 'text') {
+      const x = drawToX(s.x), y = drawToY(s.y);
+      const w = s.text.length * 11;
+      const hh = 22;
+      els += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-family="Tahoma, 'Segoe UI', sans-serif" font-size="18" fill="black" text-anchor="middle" dominant-baseline="middle">${drawEsc(s.text)}</text>`;
+      bb(x - w/2, y - hh/2); bb(x + w/2, y + hh/2);
+    }
+  });
+
+  const pad = 10;
+  minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+  const w = Math.max(1, maxX - minX);
+  const h = Math.max(1, maxY - minY);
+  const vx = minX.toFixed(1), vy = minY.toFixed(1);
+  const vw = w.toFixed(1), vh = h.toFixed(1);
+  const outW = Math.round(w), outH = Math.round(h);
+
+  /* ذخیره‌ی داده‌ی شبکه برای ویرایش بعدی */
+  const shapesB64 = base64Encode(JSON.stringify(drawState.shapes));
+
+  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${vy} ${vw} ${vh}" width="${outW}" height="${outH}" data-shapes="${shapesB64}">${els}</svg>`;
+
+  drawState.pendingSvg = svgString;
+  drawState.pendingNaturalWidth = outW;
+  drawState.pendingEditingMarker = drawState.editingMarker;
+
+  closeDrawModal();
+  openDrawSizeModal();
+}
+
+/* ─── مودال اندازه ─── */
+function openDrawSizeModal() {
+  const naturalWidth = drawState.pendingNaturalWidth;
+
+  const fakeBtn = {
+    id: 'drawSize',
+    modal: {
+      title: 'اندازه‌ی شکل',
+      noMiniTools: true,
+      fields: [
+        {
+          name: 'width',
+          label: `عرض شکل (پیکسل)\n\n📐 عرض قابل استفاده در چاپ: ${PRINT_CONTENT_WIDTH} پیکسل\nعرض طبیعی این شکل: ${naturalWidth} پیکسل\n\nپیشنهاد:\n• نصف صفحه: 300\n• دو سوم صفحه: 400\n• کل عرض: ${PRINT_CONTENT_WIDTH}`,
+          optional: true
+        }
+      ],
+      build: (v) => {
+        const w = parseInt(v.width) || naturalWidth;
+        localStorage.setItem('drawPreferredWidth', String(w));
+        const b64 = base64Encode(drawState.pendingSvg);
+        return `[[DRAW|${w}|${b64}]]`;
+      }
+    }
+  };
+  openModal(fakeBtn);
+}
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۸: ذخیره و بارگذاری امتحان
+   ═══════════════════════════════════════════════════════════ */
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۹: سوال چهارقسمتی (۴ گزینه‌ای)
+   ═══════════════════════════════════════════════════════════ */
+
+const MULTIQ_PART_NAMES = ['الف', 'ب', 'ج', 'د'];
+const MULTIQ_OPT_NUMS = ['۱', '۲', '۳', '۴'];
+
+/* ─── باز کردن مودال ─── */
+let multiqEditingMarker = null;
+/* شناسه‌ی دکمه‌هایی که در مودال چهارقسمتی معنا ندارند (بلوکی هستند) */
+const MULTIQ_EXCLUDED_IDS = ['image', 'draw', 'numberline', 'coordinate', 'coordsys', 'multiq'];
+
+function initMultiQFullToolbar() {
+  const container = document.getElementById('multiQFullToolbar');
+  if (!container) return;
+  container.innerHTML = '';
+
+  BUTTONS.forEach(btn => {
+    if (MULTIQ_EXCLUDED_IDS.includes(btn.id)) return;
+
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'tool-btn' + (btn.modal ? ' primary' : '');
+    el.title = btn.title || '';
+    el.addEventListener('mousedown', e => e.preventDefault());   // فوکوس فیلد را از دست نده
+    el.addEventListener('click', () => handleButtonClick(btn));
+    container.appendChild(el);
+    renderButtonLabel(el, btn.label);
+  });
+}
+function openMultiQModal(existingMarker) {
+  buildMultiQForm();
+ initMultiQFullToolbar();
+  if (existingMarker) {
+    // حالت ویرایش: پر کردن فرم با داده‌های قبلی
+    try {
+      const m = existingMarker.match(/^\[\[MULTIQ\|([^\]]+)\]\]$/);
+      if (m) {
+        const data = JSON.parse(base64Decode(m[1]));
+        fillMultiQForm(data);
+        multiqEditingMarker = existingMarker;
+      } else {
+        multiqEditingMarker = null;
+      }
+    } catch (e) {
+      multiqEditingMarker = null;
+    }
+  } else {
+    multiqEditingMarker = null;
+  }
+
+  document.getElementById('multiQModal').classList.add('active');
+  setTimeout(() => {
+    const firstInput = document.querySelector('#multiQForm .multiq-q-input');
+    if (firstInput) firstInput.focus();
+  }, 80);
+}
+
+/* پر کردن فرم با داده‌های موجود */
+function fillMultiQForm(data) {
+  if (!data || !data.parts) return;
+
+  data.parts.forEach((part, i) => {
+    const qInput = document.querySelector(`.multiq-q-input[data-part-index="${i}"]`);
+    if (qInput) qInput.value = part.q || '';
+
+    (part.opts || []).forEach((opt, j) => {
+      const optInput = document.querySelector(`.multiq-opt-input[data-part-index="${i}"][data-opt-index="${j}"]`);
+      if (optInput) optInput.value = opt || '';
+    });
+  });
+}
+
+function closeMultiQModal() {
+  document.getElementById('multiQModal').classList.remove('active');
+  multiqEditingMarker = null;
+  window.insertTarget = null;      // ⬅ این خط جدید
+  editor.focus();
+}
+
+/* ─── ساخت فرم ─── */
+function buildMultiQForm() {
+  const form = document.getElementById('multiQForm');
+  form.innerHTML = '';
+
+  MULTIQ_PART_NAMES.forEach((name, i) => {
+    const part = document.createElement('div');
+    part.className = 'multiq-part';
+
+    // هدر
+    const header = document.createElement('div');
+    header.className = 'multiq-part-header';
+    header.textContent = `قسمت ${name})`;
+    part.appendChild(header);
+
+    // صورت سوال
+    const qInput = document.createElement('textarea');
+    qInput.className = 'multiq-q-input';
+    qInput.placeholder = `صورت سوال قسمت ${name}...`;
+    qInput.dataset.partIndex = i;
+    qInput.addEventListener('focus', () => {
+  lastFocusedModalInput = qInput;
+  window.insertTarget = qInput;      // ⬅ جدید
+});
+qInput.addEventListener('input', (e) => applyBidiFix(qInput, e));
+    part.appendChild(qInput);
+
+    // گزینه‌ها
+    const opts = document.createElement('div');
+    opts.className = 'multiq-options';
+
+    MULTIQ_OPT_NUMS.forEach((num, j) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'multiq-option-wrap';
+
+      const numEl = document.createElement('span');
+      numEl.className = 'multiq-option-num';
+      numEl.textContent = `${num})`;
+      wrap.appendChild(numEl);
+
+      const optInput = document.createElement('input');
+      optInput.type = 'text';
+      optInput.className = 'multiq-opt-input';
+      optInput.placeholder = `گزینه‌ی ${num}`;
+      optInput.dataset.partIndex = i;
+      optInput.dataset.optIndex = j;
+      optInput.autocomplete = 'off';
+      optInput.addEventListener('focus', () => {
+  lastFocusedModalInput = optInput;
+  window.insertTarget = optInput;    // ⬅ جدید
+});
+optInput.addEventListener('input', (e) => applyBidiFix(optInput, e));
+      wrap.appendChild(optInput);
+
+      opts.appendChild(wrap);
+    });
+
+    part.appendChild(opts);
+    form.appendChild(part);
+  });
+}
+
+/* تبدیل اعداد فارسی/عربی به انگلیسی */
+function toEnglishDigits(str) {
+  return String(str)
+    .replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
+    .replace(/[٠-٩]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48));
+}
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۲۱: اصلاح bidi در فیلدهای متنی
+   ═══════════════════════════════════════════════════════════ */
+function applyBidiFix(inputEl, e) {
+  if (e.inputType !== 'insertText' || !e.data || e.data.length !== 1) return;
+
+  const typed = e.data;
+
+  // تبدیل اعداد فارسی به انگلیسی
+  if (isPersianDigit(typed)) {
+    const pos = inputEl.selectionStart;
+    const before = inputEl.value.slice(0, pos - 1);
+    const after  = inputEl.value.slice(pos);
+    inputEl.value = before + toEnglishDigit(typed) + after;
+    inputEl.setSelectionRange(pos, pos);
+    return;
+  }
+
+  // خروج حروف فارسی از داخل LRI...PDI
+  if (isPersianChar(typed)) {
+    const pos = inputEl.selectionStart;
+
+    let depth = 0;
+    for (let i = 0; i < pos - 1; i++) {
+      const c = inputEl.value[i];
+      if (c === LRI) depth++;
+      else if (c === PDI) depth--;
+    }
+
+    if (depth > 0) {
+      const before    = inputEl.value.slice(0, pos - 1);
+      const typedChar = inputEl.value[pos - 1];
+      const after     = inputEl.value.slice(pos);
+      const closer    = PDI.repeat(depth);
+
+      const lastChar = before.slice(-1);
+      const needSpace = lastChar && lastChar !== ' ' && lastChar !== '\n';
+      const space = needSpace ? ' ' : '';
+
+      inputEl.value = before + closer + space + typedChar + after;
+      const newPos = (before + closer + space + typedChar).length;
+      inputEl.setSelectionRange(newPos, newPos);
+    }
+  }
+}
+/* ─── درج LaTeX در فیلد فعال ─── */
+
+  function insertIntoMultiQ(mode) {
+  const inp = lastFocusedModalInput;
+  if (!inp || (!inp.classList.contains('multiq-q-input') && !inp.classList.contains('multiq-opt-input'))) {
+    alert('اول روی یکی از فیلدهای سوال کلیک کن.');
+    return;
+  }
+
+  const value    = inp.value;
+  const start    = inp.selectionStart;
+  const end      = inp.selectionEnd;
+  const before   = value.slice(0, start);
+  const after    = value.slice(end);
+  const selected = value.slice(start, end);
+
+  /* پیدا کردن base قبل از کرسر */
+  function findBase(str) {
+    if (!str) return { pos: 0, base: '' };
+    let i = str.length;
+    const last = str[i - 1];
+    if (/[a-zA-Z0-9_]/.test(last)) {
+      while (i > 0 && /[a-zA-Z0-9_]/.test(str[i - 1])) i--;
+      return { pos: i, base: str.slice(i) };
+    }
+    if (last === ')') {
+      let depth = 1; i--;
+      while (i > 0) {
+        i--;
+        if (str[i] === ')') depth++;
+        else if (str[i] === '(') { depth--; if (depth === 0) break; }
+      }
+      return { pos: i, base: str.slice(i) };
+    }
+    if (last === '}') {
+      let depth = 1; i--;
+      while (i > 0) {
+        i--;
+        if (str[i] === '}') depth++;
+        else if (str[i] === '{') { depth--; if (depth === 0) break; }
+      }
+      return { pos: i, base: str.slice(i) };
+    }
+    return { pos: str.length, base: '' };
+  }
+
+  let f, replaceFrom, replaceTo;
+
+  if (mode === 'pow') {
+    if (selected) {
+      f = `${selected}^{}`;
+      replaceFrom = start; replaceTo = end;
+    } else {
+      const { pos, base } = findBase(before);
+      if (base) {
+        f = `${base}^{}`;
+        replaceFrom = pos; replaceTo = start;
+      } else {
+        f = 'x^{}';
+        replaceFrom = start; replaceTo = start;
+      }
+    }
+  } else if (mode === 'sqrt') {
+    if (selected) {
+      f = `\\sqrt{${selected}}`;
+      replaceFrom = start; replaceTo = end;
+    } else {
+      const { pos, base } = findBase(before);
+      if (base) {
+        f = `\\sqrt{${base}}`;
+        replaceFrom = pos; replaceTo = start;
+      } else {
+        f = '\\sqrt{x}';
+        replaceFrom = start; replaceTo = start;
+      }
+    }
+  } else if (mode === 'frac') {
+    if (selected) {
+      f = `\\displaystyle\\frac{${selected}}{}`;
+      replaceFrom = start; replaceTo = end;
+    } else {
+      f = '\\displaystyle\\frac{a}{b}';
+      replaceFrom = start; replaceTo = start;
+    }
+  } else if (mode === 'pi') {
+    f = '\\pi';
+    replaceFrom = start; replaceTo = end;
+  } else {
+    return;
+  }
+
+  /* ✨ اضافه کردن اسپیس اگر قبلش حرف فارسی بود */
+  const charBefore = value.slice(replaceFrom - 1, replaceFrom);
+  const needLeadingSpace =
+    charBefore &&
+    charBefore !== ' ' &&
+    charBefore !== '\n' &&
+    isPersianChar(charBefore);
+  const leadingSpace = needLeadingSpace ? ' ' : '';
+
+  const wrapped  = leadingSpace + LRI + f + PDI;
+  const newValue = value.slice(0, replaceFrom) + wrapped + value.slice(replaceTo);
+
+  /* ✨ کرسر در انتهای فرمول (قبل از PDI) — دقیقاً مثل insertAtCursor */
+  const cursorPos = replaceFrom + wrapped.length - 1;
+
+  inp.value = newValue;
+  inp.setSelectionRange(cursorPos, cursorPos);
+  inp.focus();
+}
+ 
+    
+
+/* ─── تأیید و درج ─── */
+function confirmMultiQ() {
+  // ⬇️ اول مارکر ویرایش رو ذخیره کن (قبل از close که null می‌کنه)
+  const editingMarker = multiqEditingMarker;
+
+  const parts = [];
+
+  for (let i = 0; i < 4; i++) {
+    const qInput = document.querySelector(`.multiq-q-input[data-part-index="${i}"]`);
+    const opts = [];
+    for (let j = 0; j < 4; j++) {
+      const optInput = document.querySelector(`.multiq-opt-input[data-part-index="${i}"][data-opt-index="${j}"]`);
+      opts.push(optInput.value.trim());
+    }
+    parts.push({ q: qInput.value.trim(), opts });
+  }
+
+  // اعتبارسنجی (بدون تغییر)
+  for (let i = 0; i < parts.length; i++) {
+    if (!parts[i].q) {
+      alert(`صورت سوال قسمت ${MULTIQ_PART_NAMES[i]} را وارد کن.`);
+      document.querySelector(`.multiq-q-input[data-part-index="${i}"]`).focus();
+      return;
+    }
+    for (let j = 0; j < parts[i].opts.length; j++) {
+      if (!parts[i].opts[j]) {
+        alert(`گزینه‌ی ${MULTIQ_OPT_NUMS[j]} قسمت ${MULTIQ_PART_NAMES[i]} را وارد کن.`);
+        document.querySelector(`.multiq-opt-input[data-part-index="${i}"][data-opt-index="${j}"]`).focus();
+        return;
+      }
+    }
+  }
+
+  const data = { parts };
+  const json = JSON.stringify(data);
+  const b64  = base64Encode(json);
+  const newMarker = `[[MULTIQ|${b64}]]`;
+
+  closeMultiQModal();
+
+  // ⬇️ حالا از editingMarker (متغیر محلی) استفاده کن، نه multiqEditingMarker
+  if (editingMarker) {
+    const idx = editor.value.indexOf(editingMarker);
+    if (idx >= 0) {
+      editor.value =
+        editor.value.slice(0, idx) +
+        newMarker +
+        editor.value.slice(idx + editingMarker.length);
+      editor.focus();
+      updatePreview();
+      return;   // ← مهم: دیگه insertAtCursor صدا زده نشه
+    }
+    // اگه مارکر پیدا نشد، به عنوان سوال جدید درج می‌شه
+  }
+
+  insertAtCursor(newMarker);
+}
+
+/* ─── رندر HTML ─── */
+function renderMultiQHTML(data, safeMarker) {
+  if (!data || !data.parts) return '';
+
+  let html = `<div class="multiq-block" data-marker="${safeMarker || ''}">`;
+
+  data.parts.forEach((part, i) => {
+    html += `<div class="multiq-part-view">`;
+    html += `<div class="multiq-part-q"><span class="multiq-part-name">${MULTIQ_PART_NAMES[i]})</span> ${renderMultiQField(part.q)}</div>`;
+    html += `<div class="multiq-options-view">`;
+    part.opts.forEach((opt, j) => {
+      html += `<span class="multiq-opt-view"><span class="multiq-opt-num">${MULTIQ_OPT_NUMS[j]})</span> ${renderMultiQField(opt)}</span>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += '</div>';
+  return html;
+}
+
+/* رندر هوشمند یک فیلد: اگه LaTeX هست، wrap کن؛ اگه متن فارسی هست، ساده */
+function renderMultiQField(content) {
+  if (!content) return '';
+
+ /* ✨ ایتالیک کردن حروف لاتین خام (خارج از $...$) */
+  content = italicizeVariablesForPrint(content);
+
+  if (content.includes('$')) {
+    return processTextWithFormulas(content);
+  }
+
+  if (!/[\\^_{}]/.test(content)) {
+    return processTextWithFormulas(content);
+  }
+
+  const segments = content.match(/[\u0600-\u06FF\u200c]+|[^\u0600-\u06FF\u200c]+/g) || [content];
+
+  let html = '';
+  for (const seg of segments) {
+    if (/[\u0600-\u06FF]/.test(seg)) {
+      html += escapeHtml(seg).replace(/\n/g, '<br>');
+    } else {
+      const stripped = seg.trim();
+      if (!stripped) {
+        html += escapeHtml(seg);
+      } else {
+        const leadingWs  = (seg.match(/^\s*/) || [''])[0];
+        const trailingWs = (seg.match(/\s*$/) || [''])[0];
+        html += escapeHtml(leadingWs)
+              + processTextWithFormulas('$' + stripped + '$')
+              + escapeHtml(trailingWs);
+      }
+    }
+  }
+
+  return html;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۲۲: تبدیل گفتار به متن (نسخه‌ی نهایی)
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  "use strict";
+
+  let rec            = null;
+  let isListening    = false;
+  let isRestarting   = false;
+  let restartTimer   = null;
+  let finalText      = '';
+  let interimText    = '';
+  let lastFinalText  = '';
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function els() {
+    return {
+      textarea : document.getElementById('voiceTextArea'),
+      btn      : document.getElementById('voiceRecordBtn'),
+      icon     : document.getElementById('voiceRecordIcon'),
+      status   : document.getElementById('voiceStatus')
+    };
+  }
+
+  function render() {
+    const { textarea } = els();
+    if (!textarea) return;
+    // ✨ اعداد را همیشه انگلیسی کن
+    textarea.value = toEnglishDigits((finalText + ' ' + interimText).trim());
+    textarea.scrollTop = textarea.scrollHeight;
+  }
+
+  function setMicUI(active) {
+    const { btn, icon, status } = els();
+    if (!btn || !icon) return;
+
+    if (active) {
+      btn.style.background = '#22c55e';
+      btn.style.boxShadow  = '0 4px 0 #16a34a';
+      icon.textContent = '⏹️';
+      if (status) {
+        status.textContent = '🔴 در حال ضبط... برای توقف، دکمه را بزنید';
+        status.style.color = '#dc2626';
+      }
+    } else {
+      btn.style.background = '#ef4444';
+      btn.style.boxShadow  = '0 4px 0 #b91c1c';
+      icon.textContent = '🎤';
+      if (status) {
+        status.textContent = '';
+        status.style.color = '#64748b';
+      }
+    }
+  }
+
+  function makeRec() {
+    const r = new SR();
+    r.lang = 'fa-IR';
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 1;
+    return r;
+  }
+
+  function start() {
+    if (isListening) return;
+    if (isRestarting) return;
+
+    if (!SR) {
+      const { status } = els();
+      if (status) status.textContent = '❌ مرورگر پشتیبانی نمی‌کند. از Chrome استفاده کنید.';
+      return;
+    }
+
+    try {
+      // ✨ اگر نمونه‌ی قبلی وجود دارد، همان را دوباره استفاده کن
+      // این‌طوری مرورگر اجازه‌ی جدید نمی‌خواهد
+      if (!rec) {
+        rec = makeRec();
+        attachEvents(rec);
+      }
+      rec.start();
+      isListening = true;
+      setMicUI(true);
+    } catch (e) {
+      // اگر start روی نمونه‌ی قبلی خطا داد، نمونه‌ی جدید بساز
+      try {
+        rec = makeRec();
+        attachEvents(rec);
+        rec.start();
+        isListening = true;
+        setMicUI(true);
+      } catch (e2) {
+        console.warn('start error:', e2);
+        isListening = false;
+        setMicUI(false);
+        const { status } = els();
+        if (status) status.textContent = 'خطا: ' + e2.message;
+      }
+    }
+  }
+
+  function stop() {
+    isListening = false;
+    isRestarting = false;
+
+    if (restartTimer) {
+      clearTimeout(restartTimer);
+      restartTimer = null;
+    }
+
+    if (rec) {
+      rec.onend = null;
+      rec.onerror = null;
+      rec.onresult = null;
+      try { rec.abort(); } catch(e) {}
+      try { rec.stop(); } catch(e) {}
+      rec = null;
+    }
+
+    setMicUI(false);
+  }
+
+  function scheduleRestart(delay) {
+    if (!isListening) return;
+    if (isRestarting) return;
+    if (restartTimer) clearTimeout(restartTimer);
+
+    isRestarting = true;
+    restartTimer = setTimeout(function() {
+      restartTimer = null;
+      isRestarting = false;
+
+      if (!isListening) return;
+
+      // ✨ ابتدا سعی کن همان نمونه‌ی قبلی را دوباره start کنی
+      // این‌طوری مرورگر اجازه‌ی جدید نمی‌خواهد
+      if (rec) {
+        try {
+          rec.start();
+          return;   // ← موفق شد، تمام
+        } catch (e) {
+          console.log('reuse failed, creating new instance');
+          // نتوانست، به مرحله‌ی بعد برو
+        }
+      }
+
+      // نمونه‌ی جدید (فقط اگر نمونه‌ی قبلی خراب شده باشد)
+      try {
+        rec = makeRec();
+        attachEvents(rec);
+        rec.start();
+      } catch (e) {
+        console.warn('restart error:', e);
+        isListening = false;
+        setMicUI(false);
+      }
+    }, delay);
+  }
+
+  function attachEvents(r) {
+    r.onstart = function() {
+      const { status } = els();
+      if (status && isListening) {
+        status.textContent = '🔴 در حال ضبط... برای توقف، دکمه را بزنید';
+      }
+    };
+
+    r.onerror = function(event) {
+      if (!isListening) return;
+
+      if (event.error === 'not-allowed') {
+        const { status } = els();
+        if (status) status.textContent = '⛔ دسترسی به میکروفون داده نشد.';
+        stop();
+        return;
+      }
+      if (event.error === 'audio-capture') {
+        const { status } = els();
+        if (status) status.textContent = '🎤 میکروفون در دسترس نیست.';
+        stop();
+        return;
+      }
+      scheduleRestart(400);
+    };
+
+    r.onend = function() {
+      if (isListening) {
+        scheduleRestart(300);
+      } else {
+        setMicUI(false);
+      }
+    };
+
+    r.onresult = function(event) {
+      let interim = '';
+      let final = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        const txt = res[0].transcript.trim();
+        if (res.isFinal) final += txt + ' ';
+        else interim += txt + ' ';
+      }
+
+      interimText = interim.trim();
+      const newFinal = final.trim();
+
+      if (newFinal) {
+        if (newFinal !== lastFinalText) {
+          if (lastFinalText && newFinal.startsWith(lastFinalText)) {
+            const extra = newFinal.substring(lastFinalText.length).trim();
+            if (extra) finalText += (finalText ? ' ' : '') + extra;
+          } else {
+            finalText += (finalText ? ' ' : '') + newFinal;
+          }
+          lastFinalText = newFinal;
+          interimText = '';
+        } else {
+          interimText = '';
+        }
+      }
+
+      render();
+    };
+  }
+
+  window.openVoiceTextModal = function() {
+    const { textarea, status } = els();
+    if (textarea) textarea.value = '';
+    if (status) { status.textContent = ''; status.style.color = '#64748b'; }
+    finalText = '';
+    interimText = '';
+    lastFinalText = '';
+    setMicUI(false);
+    document.getElementById('voiceTextModal').classList.add('active');
+    setTimeout(function() { if (textarea) textarea.focus(); }, 80);
+  };
+
+  window.closeVoiceTextModal = function() {
+    stop();
+    document.getElementById('voiceTextModal').classList.remove('active');
+    editor.focus();
+  };
+
+  window.confirmVoiceText = function() {
+    stop();
+    const { textarea } = els();
+    const text = textarea ? textarea.value.trim() : '';
+    if (!text) {
+      alert('متن خالی است. اول چیزی بنویسید یا بگویید.');
+      return;
+    }
+    document.getElementById('voiceTextModal').classList.remove('active');
+    editor.focus();
+    insertAtCursor(text);
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const cancelBtn = document.getElementById('voiceCancelBtn');
+    const insertBtn = document.getElementById('voiceInsertBtn');
+    const micBtn    = document.getElementById('voiceRecordBtn');
+    const modal     = document.getElementById('voiceTextModal');
+
+    if (cancelBtn) cancelBtn.addEventListener('click', window.closeVoiceTextModal);
+    if (insertBtn) insertBtn.addEventListener('click', window.confirmVoiceText);
+
+    if (micBtn) {
+      micBtn.addEventListener('click', function() {
+        if (isListening) {
+          stop();
+        } else {
+          start();
+        }
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target.id === 'voiceTextModal') window.closeVoiceTextModal();
+      });
+      modal.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') window.closeVoiceTextModal();
+      });
+    }
+  });
+
+   window.addEventListener('beforeunload', function() {
+    isListening = false;
+    if (restartTimer) clearTimeout(restartTimer);
+    if (rec) {
+      try { rec.abort(); } catch(e) {}
+      rec = null;
+    }
+  });
+
+  // ✨ تابع stop را به بیرون expose کن
+  window.stopVoiceRecording = stop;
+
+})();
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۲۳: دیکشنری فارسی → LaTeX + جایگزینی خودکار
+   ═══════════════════════════════════════════════════════════ */
+(function() {
+  "use strict";
+
+  const DICT_KEY = 'latexDictionary_v1';
+  let dictionaryItems = [];      // [{ id, persian, latex }]
+  let editingFocusField = null;  // فیلد فعال برای درج LaTeX
+  let currentMatches = [];       // برای پیش‌نمایش جایگزینی
+
+  /* ─── ذخیره / بارگذاری ─── */
+  function loadDict() {
+    try {
+      const raw = localStorage.getItem(DICT_KEY);
+      if (!raw) return [];
+      const data = JSON.parse(raw);
+      return (data && Array.isArray(data.items)) ? data.items : [];
+    } catch (e) {
+      console.warn('dict load error', e);
+      return [];
+    }
+  }
+
+  function saveDict() {
+    try {
+      localStorage.setItem(DICT_KEY, JSON.stringify({
+        version: '1.0',
+        items: dictionaryItems
+      }));
+    } catch (e) {
+      console.warn('dict save error', e);
+    }
+  }
+
+  function newId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  /* ─── نرمال‌سازی برای تطبیق ─── */
+  function normalizeForMatch(text) {
+    return toEnglishDigits(String(text))
+      .replace(/[\u200B-\u200D\u200F]/g, '\u200C')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function phraseToRegex(phrase) {
+    let esc = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    esc = esc.replace(/\s+/g, '[\\s\\u200C]+');
+    esc = esc.replace(/\u200C/g, '[\\s\\u200C]+');
+    return esc;
+  }
+
+  /* ─── یافتن تطبیق‌ها در متن ─── */
+   function findMatches(text, items) {
+    if (!items || items.length === 0) return [];
+
+    const valid = items.filter(it => it.persian && it.latex);
+    if (valid.length === 0) return [];
+
+    // ✨ کل متن را یک‌بار نرمال کن (اعداد → انگلیسی)
+    // طول متن عوض نمی‌شود، پس مکان‌ها معتبر باقی می‌مانند
+    const normalizedText = toEnglishDigits(text);
+
+    const sorted = [...valid].sort((a, b) => b.persian.length - a.persian.length);
+    const patterns = sorted.map(it => phraseToRegex(toEnglishDigits(it.persian)));
+
+    const B = '[\\s،.؟!؛:,()\\[\\]{}«»\\-—]';
+    const regex = new RegExp(
+      '(^|' + B + ')' + '(' + patterns.join('|') + ')' + '(?=' + B + '|$)',
+      'g'
+    );
+
+    const matches = [];
+    let m;
+    while ((m = regex.exec(normalizedText)) !== null) {
+      const prefix = m[1];
+      const phrase = m[2];
+      const start = m.index + prefix.length;
+      const end = start + phrase.length;
+
+      const norm = normalizeForMatch(phrase);
+      const item = sorted.find(it =>
+        normalizeForMatch(toEnglishDigits(it.persian)) === norm
+      );
+      if (item) {
+        matches.push({
+          start, end,
+          // ✨ متن اصلی (با اعداد خودش) را برای نمایش نگه دار
+          matchedText: text.slice(start, end),
+          persian: item.persian,
+          latex: item.latex,
+          selected: true
+        });
+      }
+    }
+    return matches;
+  }
+
+/* ─── آیا این متن باید داخل $...$ پیچیده شود؟ ─── */
+function looksLikeMath(s) {
+  if (!s) return false;
+  // کاراکترهای مخصوص LaTeX
+  if (/[\\^_{}]/.test(s)) return true;
+  // عملگرها و نمادهای ریاضی
+  if (/[=+\-*/<>×÷≠≤≥±√π∑∏∫∞≈≡∈∉⊂⊃⊆⊇∪∩∥⊥∠°]/.test(s)) return true;
+  // حرف تک لاتین (متغیر مثل x، y، a)
+  if (/^[a-zA-Z]$/.test(s)) return true;
+  // در غیر این صورت متن ساده است
+  return false;
+}
+
+function applyMatches(text, matches) {
+    const sorted = [...matches].sort((a, b) => a.start - b.start);
+    let out = '';
+    let lastIdx = 0;
+    for (const m of sorted) {
+      if (!m.selected) continue;
+      if (m.start < lastIdx) continue;
+
+      let latex = (m.latex || '').trim();
+
+      // اگر از قبل داخل $...$ بود، دست نزن
+      const alreadyWrapped = latex.startsWith('$') && latex.endsWith('$');
+
+      if (!alreadyWrapped && looksLikeMath(latex)) {
+        // فقط اگر شبیه ریاضی بود، بپیچان
+        latex = '$' + latex + '$';
+      }
+
+      out += text.slice(lastIdx, m.start) + latex;
+      lastIdx = m.end;
+    }
+    out += text.slice(lastIdx);
+    return out;
+}
+
+  /* ─── رندر جدول ─── */
+  function renderDictTable(filter) {
+    const body = document.getElementById('dictTableBody');
+    const empty = document.getElementById('dictEmpty');
+    if (!body) return;
+
+    const q = (filter || '').trim().toLowerCase();
+    const filtered = q
+      ? dictionaryItems.filter(it =>
+          (it.persian || '').toLowerCase().includes(q) ||
+          (it.latex || '').toLowerCase().includes(q))
+      : dictionaryItems;
+
+    body.innerHTML = '';
+
+    if (filtered.length === 0) {
+      empty.style.display = 'block';
+      empty.textContent = dictionaryItems.length === 0
+        ? 'هنوز چیزی اضافه نکرده‌اید. روی «➕ افزودن» بزنید.'
+        : 'چیزی پیدا نشد.';
+      return;
+    }
+    empty.style.display = 'none';
+
+    filtered.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'dict-row';
+      row.dataset.id = item.id;
+
+      const pIn = document.createElement('input');
+      pIn.type = 'text';
+      pIn.className = 'dict-persian-input';
+      pIn.value = item.persian || '';
+      pIn.placeholder = 'عبارت فارسی...';
+      pIn.autocomplete = 'off';
+      pIn.addEventListener('focus', () => { editingFocusField = pIn; });
+      pIn.addEventListener('input', () => {
+        item.persian = pIn.value;
+        saveDict();
+      });
+
+        const lIn = document.createElement('textarea');
+      lIn.className = 'dict-latex-input';
+      lIn.value = item.latex || '';
+      lIn.placeholder = '\\displaystyle\\frac{a}{b}';
+      lIn.rows = 1;
+      lIn.spellcheck = false;
+      lIn.autocomplete = 'off';
+      lIn.addEventListener('focus', () => { editingFocusField = lIn; });
+      lIn.addEventListener('input', () => {
+        item.latex = lIn.value;
+        saveDict();
+      });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'dict-del-btn';
+      del.textContent = '✕';
+      del.title = 'حذف';
+      del.addEventListener('click', () => {
+        dictionaryItems = dictionaryItems.filter(it => it.id !== item.id);
+        saveDict();
+        renderDictTable(document.getElementById('dictSearch').value);
+      });
+
+      row.appendChild(pIn);
+      row.appendChild(lIn);
+      row.appendChild(del);
+      body.appendChild(row);
+    });
+  }
+
+  /* ─── نوار ابزار دیکشنری ─── */
+  const DICT_BUTTONS = [
+    { label: '\\displaystyle\\frac{a}{b}',  insert: '\\displaystyle\\frac{}{}' },
+    { label: '\\sqrt{x}',     insert: '\\sqrt{}' },
+    { label: '\\sqrt[n]{x}',  insert: '\\sqrt[]{}' },
+    { label: 'x^{n}',         insert: '^{}' },
+    { label: 'x_{n}',         insert: '_{}' },
+    { label: '=',             insert: ' = ' },
+    { label: '\\neq',         insert: ' \\neq ' },
+    { label: '>',             insert: ' > ' },
+    { label: '<',             insert: ' < ' },
+    { label: '\\geq',         insert: ' \\geq ' },
+    { label: '\\leq',         insert: ' \\leq ' },
+    { label: '+',             insert: ' + ' },
+    { label: '-',             insert: ' - ' },
+    { label: '\\times',       insert: ' \\times ' },
+    { label: '\\div',         insert: ' \\div ' },
+    { label: '\\pm',          insert: ' \\pm ' },
+    { label: '\\pi',          insert: '\\pi' },
+    { label: '\\alpha',       insert: '\\alpha' },
+    { label: '\\beta',        insert: '\\beta' },
+    { label: '\\theta',       insert: '\\theta' },
+    { label: '\\parallel',    insert: ' \\parallel ' },
+    { label: '\\perp',        insert: ' \\perp ' },
+    { label: '\\in',          insert: ' \\in ' },
+    { label: '\\notin',       insert: ' \\notin ' },
+    { label: '\\subset',      insert: ' \\subset ' },
+    { label: '\\cup',         insert: ' \\cup ' },
+    { label: '\\cap',         insert: ' \\cap ' },
+    { label: '(',             insert: '(' },
+    { label: ')',             insert: ')' },
+    { label: '{}',            insert: '{}' }
+  ];
+
+  function renderDictToolbar() {
+    const bar = document.getElementById('dictToolbar');
+    if (!bar) return;
+    bar.innerHTML = '';
+
+    DICT_BUTTONS.forEach(btn => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'tool-btn';
+      el.title = 'درج: ' + btn.insert;
+      el.addEventListener('mousedown', e => e.preventDefault());
+      el.addEventListener('click', () => insertIntoDictField(btn.insert));
+
+      if (window.katex) {
+        try {
+          el.innerHTML = katex.renderToString(btn.label, { throwOnError: false });
+        } catch (e) {
+          el.textContent = btn.label;
+        }
+      } else {
+        el.textContent = btn.label;
+      }
+      bar.appendChild(el);
+    });
+  }
+
+  function insertIntoDictField(insertText) {
+    let target = editingFocusField;
+    if (!target || !document.body.contains(target)) {
+      const firstLatex = document.querySelector('.dict-latex-input');
+      if (firstLatex) target = firstLatex;
+    }
+    if (!target) {
+      alert('اول روی یکی از فیلدها کلیک کنید.');
+      return;
+    }
+
+    const start = target.selectionStart || 0;
+    const end   = target.selectionEnd || 0;
+    const before = target.value.slice(0, start);
+    const after  = target.value.slice(end);
+    target.value = before + insertText + after;
+    const pos = start + insertText.length;
+    target.setSelectionRange(pos, pos);
+    target.focus();
+
+    const row = target.closest('.dict-row');
+    if (row) {
+      const item = dictionaryItems.find(it => it.id === row.dataset.id);
+      if (item) {
+        if (target.classList.contains('dict-persian-input')) item.persian = target.value;
+        else item.latex = target.value;
+        saveDict();
+      }
+    }
+  }
+
+  /* ─── باز/بسته کردن مودال دیکشنری ─── */
+  window.openDictModal = function() {
+    // توقف ضبط اگر فعال است
+    if (typeof window.stopVoiceRecording === 'function') {
+      try { window.stopVoiceRecording(); } catch (e) {}
+    }
+
+    dictionaryItems = loadDict();
+    renderDictToolbar();
+    renderDictTable('');
+    const search = document.getElementById('dictSearch');
+    if (search) search.value = '';
+    editingFocusField = null;
+    document.getElementById('dictModal').classList.add('active');
+  };
+
+  window.closeDictModal = function() {
+    saveDict();
+    document.getElementById('dictModal').classList.remove('active');
+    const voiceArea = document.getElementById('voiceTextArea');
+    if (voiceArea) voiceArea.focus();
+  };
+
+  /* ─── افزودن ردیف ─── */
+  function addDictRow() {
+    const item = { id: newId(), persian: '', latex: '' };
+    dictionaryItems.push(item);
+    saveDict();
+    renderDictTable(document.getElementById('dictSearch').value);
+    setTimeout(() => {
+      const rows = document.querySelectorAll('.dict-row');
+      const last = rows[rows.length - 1];
+      if (last) {
+        const inp = last.querySelector('.dict-persian-input');
+        if (inp) inp.focus();
+      }
+    }, 30);
+  }
+
+  /* ─── خروجی JSON ─── */
+  function exportDict() {
+    if (dictionaryItems.length === 0) {
+      alert('دیکشنری خالی است.');
+      return;
+    }
+    const data = { version: '1.0', items: dictionaryItems };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'latex-dictionary.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ─── ورودی JSON ─── */
+  function importDict() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const items = Array.isArray(data) ? data : data.items;
+        if (!Array.isArray(items)) throw new Error('فرمت فایل نامعتبر است');
+
+        const valid = items.filter(it =>
+          it && typeof it.persian === 'string' && typeof it.latex === 'string');
+
+        if (valid.length === 0) {
+          alert('فایل خالی یا نامعتبر است.');
+          return;
+        }
+
+        let mode = 'replace';
+        if (dictionaryItems.length > 0) {
+          mode = confirm(
+            `دیکشنری فعلی: ${dictionaryItems.length} آیتم\n` +
+            `فایل: ${valid.length} آیتم\n\n` +
+            `OK = جایگزینی کامل\nCancel = اضافه به لیست`
+          ) ? 'replace' : 'append';
+        }
+
+        if (mode === 'replace') {
+          dictionaryItems = valid.map(it => ({
+            id: newId(), persian: it.persian, latex: it.latex
+          }));
+        } else {
+          valid.forEach(it => dictionaryItems.push({
+            id: newId(), persian: it.persian, latex: it.latex
+          }));
+        }
+
+        saveDict();
+        renderDictTable(document.getElementById('dictSearch').value);
+        alert(`✅ ${valid.length} آیتم بارگذاری شد.`);
+      } catch (err) {
+        alert('خطا در خواندن فایل: ' + err.message);
+      }
+    });
+    input.click();
+  }
+
+  /* ─── پیش‌نمایش جایگزینی ─── */
+  window.openReplacePreview = function() {
+    const textarea = document.getElementById('voiceTextArea');
+    const text = textarea.value;
+
+    if (!text.trim()) {
+      alert('اول متن را ضبط یا وارد کنید.');
+      return;
+    }
+
+    dictionaryItems = loadDict();
+
+    if (dictionaryItems.length === 0) {
+      alert('دیکشنری خالی است.\nاول از دکمه 📖 دیکشنری، عبارات را اضافه کنید.');
+      return;
+    }
+
+    currentMatches = findMatches(text, dictionaryItems);
+
+    if (currentMatches.length === 0) {
+      alert('هیچ عبارتی از دیکشنری در متن پیدا نشد.');
+      return;
+    }
+
+    renderReplacePreview(text, currentMatches);
+    document.getElementById('replacePreviewModal').classList.add('active');
+  };
+
+  function renderReplacePreview(text, matches) {
+    const content = document.getElementById('replacePreviewContent');
+
+    let html = '';
+    html += '<div class="replace-preview-section">';
+    html += '<div class="replace-preview-label">📝 متن اصلی:</div>';
+    html += '<div class="replace-preview-text">' + escapeHtml(text) + '</div>';
+    html += '</div>';
+
+    html += '<div class="replace-preview-section">';
+    html += '<div class="replace-preview-label">🔍 ' +
+            toPersianNumber(matches.length) +
+            ' عبارت پیدا شد (برای حذف، تیک را بردارید):</div>';
+    html += '<div class="replace-matches-list">';
+    matches.forEach((m, i) => {
+      html += '<div class="replace-match-item">' +
+        '<input type="checkbox" data-match-idx="' + i + '" checked>' +
+        '<span class="rm-persian">«' + escapeHtml(m.matchedText) + '»</span>' +
+        '<span class="rm-arrow">←</span>' +
+        '<code class="rm-latex">' + escapeHtml(m.latex) + '</code>' +
+        '</div>';
+    });
+    html += '</div></div>';
+
+    html += '<div class="replace-preview-section">';
+    html += '<div class="replace-preview-label">✅ متن جدید:</div>';
+    html += '<div class="replace-preview-text" id="replaceResultPreview"></div>';
+    html += '</div>';
+
+    content.innerHTML = html;
+
+    updateReplaceResultPreview(text, matches);
+
+    content.querySelectorAll('input[data-match-idx]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const idx = parseInt(cb.dataset.matchIdx);
+        matches[idx].selected = cb.checked;
+        updateReplaceResultPreview(text, matches);
+      });
+    });
+  }
+
+  function updateReplaceResultPreview(text, matches) {
+    const el = document.getElementById('replaceResultPreview');
+    if (!el) return;
+    el.textContent = applyMatches(text, matches);
+  }
+
+  window.applyReplace = function() {
+    const textarea = document.getElementById('voiceTextArea');
+    textarea.value = applyMatches(textarea.value, currentMatches);
+    document.getElementById('replacePreviewModal').classList.remove('active');
+    currentMatches = [];
+  };
+
+  window.cancelReplace = function() {
+    document.getElementById('replacePreviewModal').classList.remove('active');
+    currentMatches = [];
+  };
+
+  /* ─── رویدادها ─── */
+  document.addEventListener('DOMContentLoaded', function() {
+    // دکمه‌های مودال صدا
+    const vDictBtn = document.getElementById('voiceDictBtn');
+    const vRepBtn  = document.getElementById('voiceReplaceBtn');
+    if (vDictBtn) vDictBtn.addEventListener('click', window.openDictModal);
+    if (vRepBtn)  vRepBtn.addEventListener('click', window.openReplacePreview);
+
+    // مودال دیکشنری
+    const dClose = document.getElementById('dictCloseBtn');
+    const dSave  = document.getElementById('dictSaveBtn');
+    const dAdd   = document.getElementById('dictAddBtn');
+    const dExp   = document.getElementById('dictExportBtn');
+    const dImp   = document.getElementById('dictImportBtn');
+    const dSearch = document.getElementById('dictSearch');
+    const dModal = document.getElementById('dictModal');
+
+    if (dClose) dClose.addEventListener('click', window.closeDictModal);
+    if (dSave)  dSave.addEventListener('click', window.closeDictModal);
+    if (dAdd)   dAdd.addEventListener('click', addDictRow);
+    if (dExp)   dExp.addEventListener('click', exportDict);
+    if (dImp)   dImp.addEventListener('click', importDict);
+    if (dSearch) dSearch.addEventListener('input', () => renderDictTable(dSearch.value));
+
+    if (dModal) {
+      dModal.addEventListener('click', e => {
+        if (e.target.id === 'dictModal') window.closeDictModal();
+      });
+      dModal.addEventListener('keydown', e => {
+        if (e.key === 'Escape') window.closeDictModal();
+      });
+    }
+
+    // پیش‌نمایش جایگزینی
+    const rApply = document.getElementById('replaceApplyBtn');
+    const rCancel = document.getElementById('replaceCancelBtn');
+    const rModal = document.getElementById('replacePreviewModal');
+
+    if (rApply) rApply.addEventListener('click', window.applyReplace);
+    if (rCancel) rCancel.addEventListener('click', window.cancelReplace);
+    if (rModal) {
+      rModal.addEventListener('click', e => {
+        if (e.target.id === 'replacePreviewModal') window.cancelReplace();
+      });
+      rModal.addEventListener('keydown', e => {
+        if (e.key === 'Escape') window.cancelReplace();
+      });
+    }
+  });
+
+})();
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۲۰: دانلود و بارگذاری از فایل
+   ═══════════════════════════════════════════════════════════ */
+
+const FILE_VERSION = '1.0';
+
+/* ─── دانلود فایل ─── */
+function downloadExamFile() {
+  if (questionsArray.length === 0) {
+    alert('هنوز هیچ سوالی اضافه نکردی.');
+    return;
+  }
+
+  // اطلاعات امتحان
+  const examInfo = JSON.parse(localStorage.getItem('examInfo') || '{}');
+
+  const data = {
+    version: FILE_VERSION,
+    app: 'ساخت سوالات ریاضی',
+    exportedAt: new Date().toISOString(),
+    questions: JSON.parse(JSON.stringify(questionsArray)),
+    info: examInfo
+  };
+
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+
+  // اسم فایل با تاریخ شمسی
+  const today = getTodayShamsi().replace(/\//g, '-');
+  const fileName = `سوالات-ریاضی-${today}.json`;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ─── بارگذاری از فایل ─── */
+function uploadExamFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+
+  input.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('حجم فایل باید کمتر از ۱۰ مگابایت باشد.');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // اعتبارسنجی
+      if (!data.version || !data.questions) {
+        alert('فایل معتبر نیست. لطفاً فایلی که با این برنامه دانلود شده را انتخاب کن.');
+        return;
+      }
+
+      handleUploadedData(data);
+
+    } catch (err) {
+      alert('خطا در خواندن فایل: ' + err.message);
+    }
+  });
+
+  input.click();
+}
+
+/* ─── پردازش داده‌های بارگذاری‌شده ─── */
+function handleUploadedData(data) {
+  const questions = data.questions || [];
+
+  if (questions.length === 0) {
+    alert('فایل خالی است.');
+    return;
+  }
+
+  // اگه سوالاتی در ویرایشگر هست، تأیید بگیر
+  if (questionsArray.length > 0) {
+    if (!confirm(`سوالات فعلی (${questionsArray.length} سوال) با سوالات فایل (${questions.length} سوال) جایگزین می‌شوند. مطمئنی؟`)) return;
+  }
+
+  // جایگزینی سوالات
+  questionsArray.length = 0;
+  questions.forEach(q => questionsArray.push(q));
+
+  // جایگزینی اطلاعات امتحان
+  if (data.info) {
+    localStorage.setItem('examInfo', JSON.stringify(data.info));
+  }
+
+  renderQuestions();
+  alert(`✅ ${questions.length} سوال بارگذاری شد.`);
+}
+/* ═══════════════════════════════════════════════════════════
+   بخش ۳.۱۶: مقداردهی اولیه
+   ═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  initToolbar();
+  updatePreview();
+
+  const wait = setInterval(() => {
+    if (window.katex) {
+      clearInterval(wait);
+      const visibleButtons = BUTTONS.filter(b => b.group !== 'sets' || setsGroupVisible);
+      visibleButtons.forEach(btn => {
+        const el = toolbar.querySelector(`[data-btn-id="${btn.id}"]`);
+        if (el) renderButtonLabel(el, btn.label);
+      });
+      updatePreview();
+    }
+  }, 50);
+});
+</script>
+
+</body>
+</html>
